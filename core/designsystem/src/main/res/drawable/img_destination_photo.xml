@@ -1,0 +1,21 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="300dp"
+    android:height="160dp"
+    android:viewportWidth="300"
+    android:viewportHeight="160">
+  <!-- Soft Studio/Flatlay Backdrop -->
+  <path android:pathData="M0,0 L300,0 L300,160 L0,160 Z" android:fillColor="#FFF7F9FC"/>
+  <!-- Polaroid Style Photo 1 -->
+  <path android:pathData="M30,25 L130,15 L140,135 L40,145 Z" android:fillColor="#FFFFFFFF"/>
+  <path android:pathData="M40,33 L120,25 L127,105 L47,113 Z" android:fillColor="#FF40A9FF"/>
+  <!-- Polaroid Style Photo 2 -->
+  <path android:pathData="M110,20 L210,35 L195,150 L95,135 Z" android:fillColor="#FFFFFFFF"/>
+  <path android:pathData="M118,30 L198,42 L186,118 L106,106 Z" android:fillColor="#FFFF7A45"/>
+  <!-- Camera Illustration -->
+  <path android:pathData="M200,80 L280,80 L280,140 L200,140 Z" android:fillColor="#FF262626"/>
+  <path android:pathData="M225,68 L255,68 L255,80 L225,80 Z" android:fillColor="#FF595959"/>
+  <!-- Camera Lens -->
+  <path android:pathData="M240,90 C226,90 226,130 240,130 C254,130 254,90 240,90 Z" android:fillColor="#FF141414"/>
+  <path android:pathData="M240,98 C232,98 232,122 240,122 C248,122 248,98 240,98 Z" android:fillColor="#FF005BBF"/>
+</vector>

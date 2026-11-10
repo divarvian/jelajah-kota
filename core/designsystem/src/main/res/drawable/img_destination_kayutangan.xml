@@ -1,0 +1,30 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="300dp"
+    android:height="160dp"
+    android:viewportWidth="300"
+    android:viewportHeight="160">
+  <!-- Sky / Sunset Atmosphere -->
+  <path android:pathData="M0,0 L300,0 L300,160 L0,160 Z">
+    <aapt:attr name="android:fillColor">
+      <gradient android:startX="150" android:startY="0" android:endX="150" android:endY="160" android:type="linear">
+        <item android:offset="0.0" android:color="#FFFA8C16"/>
+        <item android:offset="0.4" android:color="#FFFFD666"/>
+        <item android:offset="0.8" android:color="#FFE8F4FF"/>
+      </gradient>
+    </aapt:attr>
+  </path>
+  <!-- Colonial Heritage Shophouses -->
+  <path android:pathData="M10,120 L10,60 L50,45 L90,60 L90,120 Z" android:fillColor="#FFFFFFFF"/>
+  <path android:pathData="M15,65 L45,55 L45,85 L15,85 Z" android:fillColor="#FF005BBF"/>
+  <path android:pathData="M80,120 L80,50 L160,50 L160,120 Z" android:fillColor="#FFF0F5FF"/>
+  <path android:pathData="M95,65 L145,65 L145,95 L95,95 Z" android:fillColor="#FF1890FF"/>
+  <path android:pathData="M150,120 L150,55 L210,40 L270,55 L270,120 Z" android:fillColor="#FFFFFFFF"/>
+  <!-- Cobblestone Street & Sidewalk -->
+  <path android:pathData="M0,120 L300,120 L300,160 L0,160 Z" android:fillColor="#FF434343"/>
+  <path android:pathData="M0,120 L300,120 L300,128 L0,128 Z" android:fillColor="#FF8C8C8C"/>
+  <!-- Classic Kayutangan Streetlamp -->
+  <path android:pathData="M240,125 L244,125 L244,70 L240,70 Z" android:fillColor="#FF1F1F1F"/>
+  <path android:pathData="M235,70 L249,70 L246,60 L238,60 Z" android:fillColor="#FF1F1F1F"/>
+  <path android:pathData="M238,60 L246,60 L244,55 L240,55 Z" android:fillColor="#FFFFD666"/>
+</vector>

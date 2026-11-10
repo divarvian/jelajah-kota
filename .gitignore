@@ -1,0 +1,46 @@
+*.iml
+.gradle
+.gradle_home
+/local.properties
+local.properties
+.DS_Store
+/build
+**/build/
+/captures
+.externalNativeBuild
+.cxx
+*.hprof
+*.keystore
+*.jks
+
+# Android Studio / IntelliJ / VS Code
+/.idea/
+.idea/
+.vscode/
+
+# Starter Kit extraction folder & Docs
+jelajahkota-agent-kit/
+docs/
+
+# AI Agents, Skills, Rules & LLM Configs
+.agents/
+AGENTS.md
+KIT_VERSION.txt
+BOOTSTRAP_PROMPT.md
+docs/BOOTSTRAP_PROMPT.md
+.gemini/
+.cursor/
+.windsurf/
+.claude/
+.copilot/
+.chat/
+*.prompt.md
+
+# Supabase local development
+.supabase/
+supabase/.temp/
+
+# Environment / local keys
+.env
+.env.local
+local.defaults.properties

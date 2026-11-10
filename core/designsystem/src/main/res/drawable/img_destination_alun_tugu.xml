@@ -1,0 +1,26 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+  <!-- Sky -->
+  <path android:pathData="M0,0 L200,0 L200,200 L0,200 Z">
+    <aapt:attr name="android:fillColor">
+      <gradient android:startX="100" android:startY="0" android:endX="100" android:endY="200" android:type="linear">
+        <item android:offset="0.0" android:color="#FF5CB3FF"/>
+        <item android:offset="1.0" android:color="#FFCCE6FF"/>
+      </gradient>
+    </aapt:attr>
+  </path>
+  <!-- Park Foliage & Lotus Pond -->
+  <path android:pathData="M0,120 C50,110 150,110 200,120 L200,200 L0,200 Z" android:fillColor="#FF2E8540"/>
+  <path android:pathData="M0,145 C60,135 140,135 200,145 L200,200 L0,200 Z" android:fillColor="#FF2699FB"/>
+  <!-- Water Lilies -->
+  <path android:pathData="M40,160 C55,150 70,170 40,160 Z" android:fillColor="#FF52C41A"/>
+  <path android:pathData="M140,165 C155,155 170,175 140,165 Z" android:fillColor="#FF52C41A"/>
+  <!-- Tugu Malang Monument -->
+  <path android:pathData="M95,140 L105,140 L103,60 L100,30 L97,60 Z" android:fillColor="#FFE6ECF2"/>
+  <path android:pathData="M98,30 L102,30 L100,20 Z" android:fillColor="#FFFFD700"/>
+  <path android:pathData="M88,140 L112,140 L115,155 L85,155 Z" android:fillColor="#FFB0BEC5"/>
+</vector>

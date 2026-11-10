@@ -1,0 +1,28 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="300dp"
+    android:height="160dp"
+    android:viewportWidth="300"
+    android:viewportHeight="160">
+  <!-- Warm Ambient Cafe Interior -->
+  <path android:pathData="M0,0 L300,0 L300,160 L0,160 Z">
+    <aapt:attr name="android:fillColor">
+      <gradient android:startX="150" android:startY="0" android:endX="150" android:endY="160" android:type="linear">
+        <item android:offset="0.0" android:color="#FF381E11"/>
+        <item android:offset="0.7" android:color="#FF5C3A21"/>
+        <item android:offset="1.0" android:color="#FF874D00"/>
+      </gradient>
+    </aapt:attr>
+  </path>
+  <!-- Brick Pattern Accent -->
+  <path android:pathData="M20,20 L100,20 L100,60 L20,60 Z" android:fillColor="#15FFFFFF"/>
+  <path android:pathData="M110,20 L190,20 L190,60 L110,60 Z" android:fillColor="#15FFFFFF"/>
+  <!-- Wooden Table -->
+  <path android:pathData="M0,110 L300,110 L300,160 L0,160 Z" android:fillColor="#FFD48806"/>
+  <!-- Coffee Cup & Travel Planner Notebook -->
+  <path android:pathData="M50,90 L90,90 L85,125 L55,125 Z" android:fillColor="#FFFFFFFF"/>
+  <path android:pathData="M88,96 C98,96 98,118 86,118" android:strokeWidth="3" android:strokeColor="#FFFFFFFF"/>
+  <path android:pathData="M130,105 L260,105 L255,145 L125,145 Z" android:fillColor="#FFFFFBE6"/>
+  <!-- Pen -->
+  <path android:pathData="M245,95 L270,120" android:strokeWidth="3" android:strokeColor="#FF005BBF"/>
+</vector>

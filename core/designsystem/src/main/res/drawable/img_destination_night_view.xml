@@ -1,0 +1,25 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+  <!-- Night Sky -->
+  <path android:pathData="M0,0 L200,0 L200,200 L0,200 Z">
+    <aapt:attr name="android:fillColor">
+      <gradient android:startX="100" android:startY="0" android:endX="100" android:endY="200" android:type="linear">
+        <item android:offset="0.0" android:color="#FF000B1A"/>
+        <item android:offset="0.6" android:color="#FF001E3D"/>
+        <item android:offset="1.0" android:color="#FF003366"/>
+      </gradient>
+    </aapt:attr>
+  </path>
+  <!-- Distant Hill Lights (Batu / Paralayang View) -->
+  <path android:pathData="M0,140 C50,110 150,120 200,100 L200,200 L0,200 Z" android:fillColor="#FF001326"/>
+  <!-- Sparkles & Bokeh City Lights -->
+  <path android:pathData="M40,150 C38,150 38,154 40,154 C42,154 42,150 40,150 Z" android:fillColor="#FFFFD666"/>
+  <path android:pathData="M70,165 C67,165 67,171 70,171 C73,171 73,165 70,165 Z" android:fillColor="#FFFF4D4F"/>
+  <path android:pathData="M110,145 C107,145 107,151 110,151 C113,151 113,145 110,145 Z" android:fillColor="#FF40A9FF"/>
+  <path android:pathData="M150,160 C147,160 147,166 150,166 C153,166 153,160 150,160 Z" android:fillColor="#FFFFD666"/>
+  <path android:pathData="M180,135 C178,135 178,139 180,139 C182,139 182,135 180,135 Z" android:fillColor="#FF73D13D"/>
+</vector>

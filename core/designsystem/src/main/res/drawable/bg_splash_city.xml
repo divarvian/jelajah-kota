@@ -1,0 +1,74 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="393dp"
+    android:height="852dp"
+    android:viewportWidth="393"
+    android:viewportHeight="852">
+
+  <!-- Background Base Gradient -->
+  <path
+      android:pathData="M0,0 L393,0 L393,852 L0,852 Z">
+    <aapt:attr name="android:fillColor">
+      <gradient
+          android:startX="196.5"
+          android:startY="0"
+          android:endX="196.5"
+          android:endY="852"
+          android:type="linear">
+        <item android:offset="0.0" android:color="#FF00224D" />
+        <item android:offset="0.4" android:color="#FF003B80" />
+        <item android:offset="0.8" android:color="#FF005BBF" />
+        <item android:offset="1.0" android:color="#FF004085" />
+      </gradient>
+    </aapt:attr>
+  </path>
+
+  <!-- City Skyline Silhouette (Malang Cityscape & Heritage Landmarks) -->
+  <!-- Distant Mountains (Mount Arjuno / Bromo silhouette) -->
+  <path
+      android:pathData="M0,520 L60,490 L130,515 L220,460 L290,500 L350,475 L393,495 L393,852 L0,852 Z"
+      android:fillColor="#15FFFFFF"/>
+  <path
+      android:pathData="M0,550 L80,530 L160,560 L240,510 L320,540 L393,525 L393,852 L0,852 Z"
+      android:fillColor="#1EFFFFFF"/>
+
+  <!-- City Buildings Silhouette -->
+  <path
+      android:pathData="M0,640 L25,640 L25,610 L55,610 L55,640 L70,640 L70,590 L85,570 L100,590 L100,640 L130,640 L130,600 L160,600 L160,640 L180,640 L180,550 L196,520 L212,550 L212,640 L235,640 L235,585 L265,585 L265,640 L290,640 L290,615 L320,615 L320,640 L350,640 L350,595 L375,595 L375,640 L393,640 L393,852 L0,852 Z"
+      android:fillColor="#28FFFFFF"/>
+
+  <!-- Tugu Malang Monument center landmark silhouette in foreground -->
+  <path
+      android:pathData="M185,720 L208,720 L204,650 L200,620 L196.5,580 L193,620 L189,650 Z"
+      android:fillColor="#40FFFFFF"/>
+
+  <!-- Ground / Road Base -->
+  <path
+      android:pathData="M0,740 L393,740 L393,852 L0,852 Z"
+      android:fillColor="#30001833"/>
+
+  <!-- Street Perspective / Trees -->
+  <path
+      android:pathData="M40,740 C60,700 80,700 100,740 Z"
+      android:fillColor="#35FFFFFF"/>
+  <path
+      android:pathData="M293,740 C313,700 333,700 353,740 Z"
+      android:fillColor="#35FFFFFF"/>
+
+  <!-- Soft Vignette & Darkening Overlay for contrast -->
+  <path
+      android:pathData="M0,0 L393,0 L393,852 L0,852 Z">
+    <aapt:attr name="android:fillColor">
+      <gradient
+          android:startX="196.5"
+          android:startY="0"
+          android:endX="196.5"
+          android:endY="852"
+          android:type="linear">
+        <item android:offset="0.0" android:color="#70001026" />
+        <item android:offset="0.5" android:color="#30001A3D" />
+        <item android:offset="1.0" android:color="#90001026" />
+      </gradient>
+    </aapt:attr>
+  </path>
+</vector>

@@ -1,0 +1,19 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+  <!-- Table Surface -->
+  <path android:pathData="M0,0 L200,0 L200,200 L0,200 Z" android:fillColor="#FFF5F5F5"/>
+  <!-- Malang Culinary: Authentic Bakso Malang Bowl -->
+  <path android:pathData="M30,100 C30,160 170,160 170,100 Z" android:fillColor="#FFFFFFFF"/>
+  <path android:pathData="M30,100 C30,85 170,85 170,100 C170,115 30,115 30,100 Z" android:fillColor="#FFF0F0F0"/>
+  <path android:pathData="M40,98 C40,90 160,90 160,98 C160,110 40,110 40,98 Z" android:fillColor="#FFFFD666"/>
+  <!-- Meatballs & Crispy Wonton (Pangsit Goreng) -->
+  <path android:pathData="M70,95 C60,95 60,115 70,115 C80,115 80,95 70,95 Z" android:fillColor="#FF874D00"/>
+  <path android:pathData="M110,95 C100,95 100,115 110,115 C120,115 120,95 110,95 Z" android:fillColor="#FF874D00"/>
+  <path android:pathData="M130,80 L160,85 L145,110 Z" android:fillColor="#FFA78216"/>
+  <!-- Green Scallions -->
+  <path android:pathData="M85,100 L95,100 M90,95 L90,105" android:strokeWidth="2" android:strokeColor="#FF52C41A"/>
+</vector>

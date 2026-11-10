@@ -1,0 +1,4 @@
+-- JelajahKota Seed Data Placeholder
+-- Local development sample data for Kota Malang attractions.
+-- NOTE: Schema migrations belong in supabase/migrations/
+-- This file contains deterministic seed inserts only.
