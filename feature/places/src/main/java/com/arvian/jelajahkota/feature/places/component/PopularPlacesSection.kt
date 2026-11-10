@@ -17,13 +17,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.material.icons.rounded.NorthEast
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.StarBorder
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +40,8 @@ import com.arvian.jelajahkota.core.designsystem.theme.BrandBluePrimary
 import com.arvian.jelajahkota.core.designsystem.theme.CardDarkOverlay
 import com.arvian.jelajahkota.core.designsystem.theme.DarkText
 import com.arvian.jelajahkota.core.designsystem.theme.Lato
+import androidx.compose.foundation.shape.RoundedCornerShape
+import com.arvian.jelajahkota.core.designsystem.theme.StarYellow
 import com.arvian.jelajahkota.core.designsystem.theme.White
 import com.arvian.jelajahkota.core.domain.model.Place
 
@@ -114,14 +121,16 @@ fun PopularPlaceCard(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = 16.dp, end = 16.dp)
-                .size(25.dp),
+                .size(28.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(Color.Black.copy(alpha = 0.35f)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                painter = painterResource(id = DesignR.drawable.ic_export_arrow),
+                imageVector = Icons.Rounded.NorthEast,
                 contentDescription = "Buka detail tempat",
                 tint = White,
-                modifier = Modifier.size(25.dp)
+                modifier = Modifier.size(16.dp)
             )
         }
 
@@ -156,10 +165,10 @@ fun PopularPlaceCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
-                        painter = painterResource(id = DesignR.drawable.ic_location_pin_white),
+                        imageVector = Icons.Rounded.LocationOn,
                         contentDescription = null,
                         tint = White,
-                        modifier = Modifier.size(width = 8.dp, height = 10.dp)
+                        modifier = Modifier.size(11.dp)
                     )
 
                     Spacer(modifier = Modifier.width(5.dp))
@@ -210,12 +219,10 @@ fun RatingStars(
         for (i in 1..5) {
             val isFilled = i <= fullStars
             Icon(
-                painter = painterResource(
-                    id = if (isFilled) DesignR.drawable.ic_star_filled else DesignR.drawable.ic_star_dim
-                ),
+                imageVector = if (isFilled) Icons.Rounded.Star else Icons.Rounded.StarBorder,
                 contentDescription = null,
-                tint = androidx.compose.ui.graphics.Color.Unspecified,
-                modifier = Modifier.size(11.dp)
+                tint = StarYellow,
+                modifier = Modifier.size(12.dp)
             )
         }
     }

@@ -11,20 +11,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arvian.jelajahkota.core.designsystem.theme.BrandBlueOutline
 import com.arvian.jelajahkota.core.designsystem.theme.BrandBluePrimary
 import com.arvian.jelajahkota.core.designsystem.theme.Lato
 import com.arvian.jelajahkota.core.designsystem.theme.White
-import androidx.compose.ui.text.font.FontWeight
 
 @Composable
 fun JelajahKotaPrimaryButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    textColor: Color = White
 ) {
     Button(
         onClick = onClick,
@@ -44,7 +45,8 @@ fun JelajahKotaPrimaryButton(
             text = text,
             fontFamily = Lato,
             fontWeight = FontWeight.Bold,
-            fontSize = 16.sp
+            fontSize = 16.sp,
+            color = if (enabled) textColor else White.copy(alpha = 0.7f)
         )
     }
 }
@@ -54,7 +56,8 @@ fun JelajahKotaOutlinedButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    textColor: Color = BrandBluePrimary
 ) {
     OutlinedButton(
         onClick = onClick,
@@ -63,7 +66,9 @@ fun JelajahKotaOutlinedButton(
         border = BorderStroke(1.5.dp, BrandBlueOutline),
         colors = ButtonDefaults.outlinedButtonColors(
             containerColor = White,
-            contentColor = BrandBluePrimary
+            contentColor = BrandBluePrimary,
+            disabledContainerColor = White.copy(alpha = 0.6f),
+            disabledContentColor = BrandBluePrimary.copy(alpha = 0.5f)
         ),
         modifier = modifier
             .fillMaxWidth()
@@ -73,7 +78,8 @@ fun JelajahKotaOutlinedButton(
             text = text,
             fontFamily = Lato,
             fontWeight = FontWeight.Bold,
-            fontSize = 16.sp
+            fontSize = 16.sp,
+            color = if (enabled) textColor else BrandBluePrimary.copy(alpha = 0.5f)
         )
     }
 }

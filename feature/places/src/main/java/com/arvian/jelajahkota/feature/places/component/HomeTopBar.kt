@@ -13,6 +13,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -80,7 +83,7 @@ fun HomeTopBar(
                     color = DarkText
                 )
                 Text(
-                    text = userProfile?.name ?: "AntekAntekAsing",
+                    text = userProfile?.name ?: "Sobat Jelajah",
                     fontFamily = Lato,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
@@ -100,7 +103,7 @@ fun HomeTopBar(
                 modifier = Modifier.size(40.dp)
             ) {
                 Icon(
-                    painter = painterResource(id = DesignR.drawable.ic_setting),
+                    imageVector = Icons.Rounded.Settings,
                     contentDescription = "Pengaturan",
                     tint = DarkText,
                     modifier = Modifier.size(22.dp)
@@ -117,10 +120,10 @@ fun HomeTopBar(
                     modifier = Modifier.size(40.dp)
                 ) {
                     Icon(
-                        painter = painterResource(id = DesignR.drawable.ic_notification_bell),
+                        imageVector = Icons.Rounded.Notifications,
                         contentDescription = "Notifikasi",
                         tint = DarkText,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(22.dp)
                     )
                 }
 

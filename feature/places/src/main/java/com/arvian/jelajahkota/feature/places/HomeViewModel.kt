@@ -27,14 +27,16 @@ class HomeViewModel(
             combine(
                 placesRepository.getUserProfile(),
                 placesRepository.getCityDestinations(),
+                placesRepository.getPlaces(),
                 placesRepository.getPopularPlaces(),
                 placesRepository.getCategories()
-            ) { user, cities, places, categories ->
+            ) { user, cities, places, popular, categories ->
                 HomeUiState(
                     isLoading = false,
                     userProfile = user,
                     cityDestinations = cities,
-                    popularPlaces = places,
+                    allPlaces = places,
+                    popularPlaces = popular,
                     categories = categories
                 )
             }.collect { state ->

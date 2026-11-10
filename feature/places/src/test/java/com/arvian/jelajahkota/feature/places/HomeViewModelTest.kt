@@ -22,6 +22,31 @@ import org.junit.Before
 import org.junit.Test
 
 class FakePlacesRepository : PlacesRepository {
+    val places = listOf(
+        Place(
+            id = "malioboro",
+            name = "Malioboro",
+            location = "DIY",
+            city = "Yogyakarta",
+            rating = 4.6,
+            reviewCount = 100,
+            imageResId = 3,
+            isPopular = true,
+            category = "City"
+        ),
+        Place(
+            id = "bromo",
+            name = "Gunung Bromo",
+            location = "Malang",
+            city = "Malang",
+            rating = 4.9,
+            reviewCount = 500,
+            imageResId = 4,
+            isPopular = true,
+            category = "Mountain"
+        )
+    )
+
     override fun getUserProfile(): Flow<UserProfile> = flowOf(
         UserProfile("u1", "AntekAntekAsing", 123, 5)
     )
@@ -29,21 +54,20 @@ class FakePlacesRepository : PlacesRepository {
     override fun getCityDestinations(): Flow<List<CityDestination>> = flowOf(
         listOf(
             CityDestination("jogja", "Yogyakarta", 1),
-            CityDestination("jkt", "Jakarta", 2)
+            CityDestination("malang", "Malang", 2)
         )
     )
 
-    override fun getPopularPlaces(): Flow<List<Place>> = flowOf(
-        listOf(
-            Place("malioboro", "Malioboro", "DIY", 4.6, 100, 3, true)
-        )
-    )
-
+    override fun getPopularPlaces(): Flow<List<Place>> = flowOf(places.filter { it.isPopular })
     override fun getCategories(): Flow<List<CategoryItem>> = flowOf(
         listOf(
-            CategoryItem("beach", "Beach", 4)
+            CategoryItem("cat_city", "City", 4),
+            CategoryItem("cat_mountain", "Mountain", 5)
         )
     )
+    override fun getPlaces(): Flow<List<Place>> = flowOf(places)
+    override fun getPlaceById(id: String): Flow<Place?> = flowOf(places.find { it.id == id })
+    override fun searchPlaces(query: String, cityId: String?, categoryId: String?): Flow<List<Place>> = flowOf(places)
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -75,41 +99,48 @@ class HomeViewModelTest {
         assertEquals(5, state.userProfile?.unreadNotificationsCount)
         assertEquals(2, state.cityDestinations.size)
         assertEquals("Yogyakarta", state.cityDestinations.first().name)
-        assertEquals(1, state.popularPlaces.size)
+        assertEquals(2, state.popularPlaces.size)
         assertEquals("Malioboro", state.popularPlaces.first().name)
-        assertEquals(1, state.categories.size)
-        assertEquals("Beach", state.categories.first().name)
+        assertEquals(2, state.categories.size)
         assertEquals(HomeNavTab.BERANDA, state.selectedNavTab)
     }
 
     @Test
-    fun onSearchQueryChanged_updatesQuery() = runTest {
+    fun onSearchQueryChanged_updatesQueryAndFilteredPlaces() = runTest {
         advanceUntilIdle()
 
         viewModel.onSearchQueryChanged("Bromo")
         assertEquals("Bromo", viewModel.uiState.value.searchQuery)
+        assertEquals(1, viewModel.uiState.value.filteredPlaces.size)
+        assertEquals("Gunung Bromo", viewModel.uiState.value.filteredPlaces.first().name)
     }
 
     @Test
-    fun onCitySelected_togglesSelection() = runTest {
+    fun onCitySelected_togglesSelectionAndFilters() = runTest {
         advanceUntilIdle()
 
-        viewModel.onCitySelected("jogja")
-        assertEquals("jogja", viewModel.uiState.value.selectedCity)
+        viewModel.onCitySelected("malang")
+        assertEquals("malang", viewModel.uiState.value.selectedCity)
+        assertEquals(1, viewModel.uiState.value.filteredPlaces.size)
+        assertEquals("Gunung Bromo", viewModel.uiState.value.filteredPlaces.first().name)
 
-        viewModel.onCitySelected("jogja")
+        viewModel.onCitySelected("malang")
         assertNull(viewModel.uiState.value.selectedCity)
+        assertEquals(2, viewModel.uiState.value.filteredPlaces.size)
     }
 
     @Test
-    fun onCategorySelected_togglesSelection() = runTest {
+    fun onCategorySelected_togglesSelectionAndFilters() = runTest {
         advanceUntilIdle()
 
-        viewModel.onCategorySelected("beach")
-        assertEquals("beach", viewModel.uiState.value.selectedCategory)
+        viewModel.onCategorySelected("cat_city")
+        assertEquals("cat_city", viewModel.uiState.value.selectedCategory)
+        assertEquals(1, viewModel.uiState.value.filteredPlaces.size)
+        assertEquals("Malioboro", viewModel.uiState.value.filteredPlaces.first().name)
 
-        viewModel.onCategorySelected("beach")
+        viewModel.onCategorySelected("cat_city")
         assertNull(viewModel.uiState.value.selectedCategory)
+        assertEquals(2, viewModel.uiState.value.filteredPlaces.size)
     }
 
     @Test
