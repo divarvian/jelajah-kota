@@ -2,87 +2,82 @@
 
 **JelajahKota** adalah aplikasi panduan wisata dan eksplorasi destinasi kota berbasis **native Android**. Aplikasi ini dirancang untuk memudahkan wisatawan dan warga lokal menemukan tempat menarik, kuliner khas, wisata alam, serta pengalaman budaya terbaik, dengan cakupan awal di **Kota Malang, Jawa Timur, Indonesia**.
 
-Dibangun secara modern dengan **100% Jetpack Compose**, fondasi **Material 3**, arsitektur **Multi-Module**, **MVVM + Unidirectional Data Flow (UDF)**, serta terintegrasi dengan **Supabase**.
+Dibangun secara modern dengan **100% Jetpack Compose**, fondasi **Material 3**, struktur **Single Module (`:app`) dengan Clean Package-by-Feature**, **MVVM + Unidirectional Data Flow (UDF)**, **Type-Safe Navigation Compose**, serta fondasi backend **Supabase**.
 
 ---
 
 ## 📱 Fitur Utama
 
-### 1. Welcome Splash Screen
-- Tampilan pembuka beranimasi dengan latar visual kota dan gradasi warna biru khas JelajahKota (`#002E66` ke `#005BBF`).
-- Tipografi judul *Josefin Sans Bold* dan ilustrasi pin peta 3D.
-- Navigasi otomatis menuju Onboarding saat aplikasi pertama kali dijalankan.
+### 1. Welcome Splash & Onboarding (3 Slide Interaktif)
+- **Splash Screen**: Latar visual kota dengan gradasi biru JelajahKota (`#002E66` → `#005BBF`), animasi paralel wordmark *Josefin Sans Bold*, dan pin peta 3D.
+- **Onboarding 3 Slide**: *Jelajahi Destinasi Sudut Kotamu!*, *Rencanakan Kunjunganmu*, dan *Bagikan Pengalamanmu* lengkap dengan indikator halaman, tombol *Lewati*, *Masuk*, dan *Daftar Akun*.
+- **DataStore Persistence**: Status onboarding hanya ditandai selesai saat pengguna menekan *Lewati* atau berhasil *Masuk/Daftar*, dan `startDestination` dikunci saat startup agar backstack navigasi stabil.
 
-### 2. Onboarding Flow (3 Slide Interaktif)
-- **Slide 1 — Jelajahi Destinasi Kotamu!**: Menampilkan kolase foto Kampung Warna-Warni Jodipan, Alun-Alun Tugu, dan Kayutangan Heritage.
-- **Slide 2 — Rencanakan Kunjunganmu**: Inspirasi petualangan alam Gunung Bromo, Coban Waterfall, dan kafe heritage.
-- **Slide 3 — Bagikan Pengalamanmu**: Pengalaman kuliner legendaris Bakso Malang, pemandangan malam kota, dan galeri foto pengunjung.
-- **Indikator Halaman & Aksi Cepat**: Dilengkapi indikator 3 baris aktif, tombol *Lewati*, *Masuk*, dan *Daftar Akun*.
-- **DataStore Persistence**: Status penyelesaian onboarding disimpan secara asinkron menggunakan *AndroidX Preferences DataStore*. Pada pembukaan aplikasi berikutnya, pengguna langsung diarahkan ke Beranda/Dashboard.
+### 2. Autentikasi (`feature/auth`)
+- Alur lengkap: **Masuk**, **Daftar Akun**, **Lupa Kata Sandi**, **Konfirmasi Email**, **Verifikasi OTP**, **Kata Sandi Baru**, dan **Konfirmasi Sukses**.
+- Validasi format email, kebijakan kekuatan kata sandi, filter digit & dukungan paste OTP, serta sinkronisasi sesi pengguna tunggal.
 
-### 3. Beranda / Dashboard
-- **Top Bar Profil**: Menampilkan avatar pengguna, sapaan *"Hai, [Nama Pengguna]"*, tombol pengaturan, serta ikon notifikasi dengan badge penghitung.
-- **Headline Eksplorasi**: Tipografi *"Eksplorasi Destinasi Sudut Kotamu !"* dengan aksen warna oranye khas.
-- **Search Bar & Filter**: Kolom pencarian cepat bergaya pill dengan tombol filter kustom.
-- **Pilihan Kota (*"Ingin berkunjung kemana?"*)**: Baris gulir horizontal berisi avatar destinasi kota (Yogyakarta, Jakarta, Solo, Bandung, Surabaya, dll).
-- **Destinasi Populer**: Kartu carousel destinasi berukuran 200x200dp dengan sudut lengkung 30dp, pin lokasi, informasi daerah, dan rating bintang ulasan (4.6).
-- **Kategori Destinasi**: Tombol pill kategori wisata alam seperti *Beach* dan *Mountain*.
-- **Bottom Navigation Bar**: 5 menu utama (*Beranda*, *Eksplorasi*, *Jadwalkan*, *Favorit*, *Profile*) yang telah disesuaikan dengan *native WindowInsets* / gesture bar Android.
+### 3. Beranda, Eksplorasi & Detail Destinasi (`feature/places`)
+- **Beranda**: Sapaan profil pengguna tersinkronisasi, pencarian cepat, pilihan kota, destinasi populer, dan kategori wisata yang langsung terhubung ke layar Eksplorasi dengan filter awal.
+- **Eksplorasi**: Katalog destinasi dengan pencarian, chip kota & kategori dinamis dari repository, pengurutan (*Paling Populer*, *Rating Tertinggi*, *Harga Termurah*, *Nama A–Z*), dan toggle tampilan Grid/List.
+- **Detail Destinasi**: Hero image, info cepat (rating, durasi, tiket, jam buka), deskripsi expandable, galeri foto, tombol favorit persisten (`FavoritesRepository`), tombol bagikan (`Intent.ACTION_SEND`), dan pratinjau ulasan dinamis.
+
+### 4. Rencana Kunjungan (`feature/plans`)
+- **Daftar Rencana**: Menampilkan jadwal tersimpan lengkap dengan catatan kunjungan dan dialog konfirmasi hapus.
+- **Kalender Interaktif**: Berbasis `java.time.YearMonth` & `LocalDate` asli (navigasi antar bulan, grid 5–6 baris dinamis, blokir tanggal lampau, nama hari/bulan Bahasa Indonesia).
+- **Konfirmasi Rencana**: Menerima rentang tanggal secara Type-Safe (`startEpochDay`, `endEpochDay`), stepper jumlah pengunjung, serta kolom catatan kunjungan opsional.
+
+### 5. Rating & Ulasan (`feature/reviews`)
+- Ringkasan skor rating dan breakdown metrik wisata yang dihitung dinamis per destinasi.
+- Pencarian ulasan, lampiran foto ulasan, serta dialog **Tulis Ulasan** (rating 1–5 bintang + isi ulasan).
+
+### 6. Favorit & Profil (`feature/favorites`, `feature/profile`)
+- **Favorit**: Grid destinasi tersimpan dengan pencarian dan toggle hapus favorit instan.
+- **Profil & Pengaturan**: Statistik dinamis (Favorit, Rencana, Ulasan), ubah profil lengkap (nama, telepon, bio, kota, tanggal lahir, jenis kelamin), unggah avatar, serta preferensi aplikasi (Lokasi, Mode Gelap, Notifikasi) yang tersimpan persisten di DataStore.
 
 ---
 
-## 🏗️ Arsitektur & Struktur Modul
+## 🏗️ Arsitektur & Struktur Package (`:app`)
 
-Proyek ini menerapkan arsitektur **Clean Multi-Module** untuk menjaga modularitas, isolasi dependensi, kecepatan kompilasi, serta kemudahan pengujian:
+Proyek dikonsolidasikan ke **1 modul `:app`** untuk menjaga kecepatan build, kesederhanaan konfigurasi Gradle, dan kemudahan refactor, dengan tetap mempertahankan disiplin **Clean Package-by-Feature**:
 
 ```text
-       ┌───────────┐
-       │   :app    │ (MainActivity, single-activity Compose, root NavHost)
-       └─┬───┬───┬─┘
-         │   │   │
-         │   │   └────────────────┐
-         ▼   ▼                    ▼
-┌──────────────┐ ┌──────────────┐ ┌────────────────┐
-│:feature:on-  │ │:feature:auth │ │:feature:places │ (HomeRoute, HomeViewModel,
-│  boarding    │ └───────┬──────┘ └───────┬────────┘  HomeScreen & komponen)
-└───────┬──────┘         │                │
-        ├────────────────┴────────────────┼────────┐
-        ▼                                 ▼        ▼
-┌───────────────┐                  ┌───────────────┐
-│ :core:domain  │                  │:core:design-  │ (Design tokens, drawables,
-└───────▲───────┘                  │  system       │  komponen UI, font)
-        │                          └───────────────┘
-┌───────┴───────┐
-│  :core:data   │ (Repository, DataStore, Supabase client provider)
-└───────┬───────┘
-        ▼
-┌───────────────┐
-│ :core:common  │ (Result<T>, DispatcherProvider, utilitas bersama)
-└───────────────┘
+app/src/
+├── debug/res/xml/network_security_config.xml   # Cleartext lokal 10.0.2.2/localhost (debug-only)
+└── main/
+    ├── assets/OFL.txt                          # Lisensi font Josefin Sans & Lato
+    ├── res/                                    # Resource terpadu (WebP terkompresi < 1 MB)
+    └── java/com/arvian/jelajahkota/
+        ├── JelajahKotaApp.kt
+        ├── MainActivity.kt
+        ├── di/                                 # AppContainer (DI terpusat)
+        ├── navigation/                         # AppDestinations, JelajahKotaAppRoot, *NavGraph.kt
+        ├── core/
+        │   ├── common/                         # Result<T>, DispatcherProvider
+        │   ├── designsystem/                   # theme/ (Light + Dark), component/
+        │   ├── domain/                         # model/, repository/ (kontrak suspend & Flow)
+        │   └── data/                           # preferences/ (DataStore), repository/, supabase/
+        └── feature/
+            ├── onboarding/                     # Splash & Onboarding 3 slide
+            ├── auth/                           # SignIn, SignUp, Forgot, OTP, Reset
+            ├── places/                         # Home, Explore, PlaceDetail
+            ├── plans/                          # PlansList, DatePicker, PlanConfirmation
+            ├── reviews/                        # Rating, ulasan, & dialog Tulis Ulasan
+            ├── favorites/                      # Daftar destinasi favorit
+            └── profile/                        # Profile, EditProfile, AvatarUpload, Settings
 ```
-
-### Tanggung Jawab Modul:
-- **`:app`**: Titik masuk aplikasi, `Application` class, dan konfigurasi navigasi utama.
-- **`:core:common`**: Tipe data dasar seperti `Result<T>` dan abstraksi coroutine dispatchers.
-- **`:core:designsystem`**: Token warna, tipografi (*Josefin Sans* dan *Lato*), tema Material 3, dan vektor drawable.
-- **`:core:domain`**: Model bisnis (`Place`, `CityDestination`, `CategoryItem`, `UserProfile`) dan antarmuka repositori.
-- **`:core:data`**: Implementasi repositori (`PlacesRepositoryImpl`, `UserPreferencesRepositoryImpl`) dan klien Supabase.
-- **`:feature:onboarding`**: Layar splash custom dan alur pager onboarding 3 slide.
-- **`:feature:auth`**: Layar typed placeholder untuk alur masuk dan pendaftaran.
-- **`:feature:places`**: Layar Beranda/Dashboard lengkap dengan ViewModel dan komponen modular.
 
 ---
 
 ## 🛠️ Tech Stack & Library
 
-- **Bahasa & Platform**: Kotlin 2.2.10 | Native Android (Min SDK 26, Target/Compile SDK 37)
-- **UI Toolkit**: Jetpack Compose (Compose BOM 2026.02.01) + Material 3
-- **Build Tool**: Gradle 9.6.0 Kotlin DSL + Android Gradle Plugin 9.4.1
-- **Manajemen Dependensi**: Gradle Version Catalog (`gradle/libs.versions.toml`)
-- **Arsitektur State**: Unidirectional Data Flow (UDF), ViewModel, `StateFlow`, `collectAsStateWithLifecycle`
-- **Penyimpanan Lokal**: AndroidX Preferences DataStore 1.1.3
-- **Navigasi**: AndroidX Navigation Compose 2.10.2
-- **Backend / Database**: Supabase Kotlin SDK 3.1.1 (PostgREST, Auth, Storage) via Ktor Android Engine 3.1.1
+- **Bahasa & Platform**: Kotlin `2.2.10` | Native Android (`minSdk = 26`, `compileSdk = 37`, `targetSdk = 37`)
+- **UI Toolkit**: Jetpack Compose (Compose BOM `2026.02.01`) + Material 3
+- **Build Tool**: Gradle `9.6.0` Kotlin DSL + Android Gradle Plugin `9.4.1` + Version Catalog (`gradle/libs.versions.toml`)
+- **Arsitektur State**: MVVM + Unidirectional Data Flow (UDF), `StateFlow`, `collectAsStateWithLifecycle`
+- **Penyimpanan Lokal**: AndroidX Preferences DataStore `1.1.3`
+- **Navigasi**: AndroidX Navigation Compose `2.10.2` (Type-Safe Serialization Routes)
+- **Backend / Database**: Supabase Kotlin SDK `3.1.1` (PostgREST, Auth, Storage) via Ktor Android Engine `3.1.1` + Supabase CLI (`supabase/`)
 - **Testing**: JUnit 4, Kotlinx Coroutines Test, Compose UI Testing
 
 ---
@@ -90,46 +85,39 @@ Proyek ini menerapkan arsitektur **Clean Multi-Module** untuk menjaga modularita
 ## 🚀 Memulai & Menjalankan Proyek
 
 ### Prasyarat:
-1. **JDK 17** atau lebih baru (direkomendasikan JDK 21 / 25).
-2. **Android SDK** terpasang dengan Platform Android 37 (`compileSdk = 37`).
-3. **Android Studio** (versi Ladybug / Meerkat atau yang lebih baru).
+1. **JDK 25** (sesuai `gradle/gradle-daemon-jvm.properties`).
+2. **Android SDK** dengan Platform Android 37 (`compileSdk = 37`).
+3. **Android Studio** versi terbaru yang mendukung AGP 9.x.
 
 ### Perintah Gradle Utama:
 
 ```bash
-# 1. Menampilkan seluruh modul yang terdaftar
+# 1. Memastikan hanya modul :app yang aktif
 ./gradlew projects
 
-# 2. Menjalankan seluruh pengujian unit (Unit Tests)
-./gradlew test
+# 2. Menjalankan seluruh Unit Test
+./gradlew testDebugUnitTest
 
-# 3. Membangun file APK Debug
-./gradlew assembleDebug
-
-# 4. Menjalankan analisis kualitas kode (Android Lint)
+# 3. Menjalankan analisis Android Lint
 ./gradlew lintDebug
+
+# 4. Membangun APK Debug
+./gradlew assembleDebug
 ```
 
-File APK yang berhasil dibangun akan berada di:
-`app/build/outputs/apk/debug/app-debug.apk`
+File APK hasil build: `app/build/outputs/apk/debug/app-debug.apk`.
 
 ---
 
 ## 🗄️ Backend Supabase (Lokal)
 
-Proyek ini telah dilengkapi dengan konfigurasi Supabase CLI untuk pengembangan lokal di folder `supabase/`:
-- `supabase/config.toml`: Konfigurasi layanan lokal (API, Database, Auth, Storage).
-- `supabase/migrations/`: Riwayat migrasi skema database PostgreSQL.
-- `supabase/seed.sql`: Data awal (*seed data*) deterministik.
-
-Untuk menjalankan Supabase secara lokal menggunakan CLI:
-```bash
-supabase start
-```
+Konfigurasi Supabase CLI tersedia di folder `supabase/`:
+- `supabase/config.toml`: Konfigurasi layanan lokal (API, PostgreSQL, Auth, Storage).
+- `supabase/migrations/`: Skema migrasi database PostgreSQL (tahap integrasi backend berikutnya).
+- `supabase/seed.sql`: Data awal deterministik.
 
 ---
 
 ## 📄 Lisensi Tipografi
 
-Aplikasi ini menggunakan font **Josefin Sans** dan **Lato** yang didistribusikan di bawah lisensi resmi [SIL Open Font License (OFL)](http://scripts.sil.org/OFL).
-Salinan lisensi disertakan dalam `core/designsystem/src/main/assets/OFL.txt`.
+Aplikasi ini menggunakan font **Josefin Sans** dan **Lato** di bawah lisensi [SIL Open Font License (OFL)](http://scripts.sil.org/OFL), disertakan dalam `app/src/main/assets/OFL.txt`.

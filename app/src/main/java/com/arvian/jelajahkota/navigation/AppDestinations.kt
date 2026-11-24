@@ -44,7 +44,11 @@ data object PasswordUpdatedDestination
 data object MainDestination
 
 @Serializable
-data object ExploreDestination
+data class ExploreDestination(
+    val initialQuery: String = "",
+    val initialCity: String? = null,
+    val initialCategory: String? = null
+)
 
 @Serializable
 data object PlansListDestination
@@ -62,13 +66,14 @@ data object ProfileDestination
 data class PlaceDetailDestination(val placeId: String)
 
 @Serializable
-data class SchedulePlanDestination(val placeId: String)
-
-@Serializable
 data class DatePickerDestination(val placeId: String)
 
 @Serializable
-data class PlanConfirmationDestination(val placeId: String)
+data class PlanConfirmationDestination(
+    val placeId: String,
+    val startEpochDay: Long,
+    val endEpochDay: Long
+)
 
 // ----------------------------------------------------
 // Reviews Flow Destination
@@ -93,8 +98,8 @@ data object AvatarUploadDestination
 // ----------------------------------------------------
 fun NavDestination?.isTopLevel(): Boolean = this?.let {
     it.hasRoute<MainDestination>() ||
-    it.hasRoute<ExploreDestination>() ||
-    it.hasRoute<PlansListDestination>() ||
-    it.hasRoute<FavoritesDestination>() ||
-    it.hasRoute<ProfileDestination>()
+        it.hasRoute<ExploreDestination>() ||
+        it.hasRoute<PlansListDestination>() ||
+        it.hasRoute<FavoritesDestination>() ||
+        it.hasRoute<ProfileDestination>()
 } ?: false

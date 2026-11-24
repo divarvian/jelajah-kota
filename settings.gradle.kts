@@ -24,14 +24,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "JelajahKota"
 include(":app")
-include(":core:common")
-include(":core:designsystem")
-include(":core:domain")
-include(":core:data")
-include(":feature:onboarding")
-include(":feature:auth")
-include(":feature:places")
-include(":feature:plans")
-include(":feature:reviews")
-include(":feature:favorites")
-include(":feature:profile")

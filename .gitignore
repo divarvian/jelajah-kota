@@ -19,7 +19,7 @@ local.properties
 .vscode/
 
 # Starter Kit extraction folder & Docs
-jelajahkota-agent-kit/
+docs/jelajahkota-agent-kit/
 docs/
 
 # AI Agents, Skills, Rules & LLM Configs
