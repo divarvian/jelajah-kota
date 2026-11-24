@@ -14,6 +14,7 @@ coroutines = "1.10.1"
 serializationJson = "1.8.0"
 supabase = "3.1.1"
 ktor = "3.1.1"
+coil = "3.1.0"
 
 [libraries]
 # Core AndroidX
@@ -55,6 +56,10 @@ supabase-storage = { group = "io.github.jan-tennert.supabase", name = "storage-k
 
 # Ktor Engine
 ktor-client-android = { group = "io.ktor", name = "ktor-client-android", version.ref = "ktor" }
+
+# Image Loading (Coil 3 with Ktor 3 engine)
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
+coil-network-ktor3 = { group = "io.coil-kt.coil3", name = "coil-network-ktor3", version.ref = "coil" }
 
 # Unit & UI Testing
 junit = { group = "junit", name = "junit", version.ref = "junit" }

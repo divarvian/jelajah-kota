@@ -11,4 +11,6 @@ interface UserPreferencesRepository {
     suspend fun setDarkModeEnabled(enabled: Boolean)
     suspend fun setPushNotificationsEnabled(enabled: Boolean)
     suspend fun setEmailNotificationsEnabled(enabled: Boolean)
+    fun getRememberedEmail(): Flow<String?>
+    suspend fun setRememberedEmail(email: String?)
 }

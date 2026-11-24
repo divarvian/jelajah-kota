@@ -1,6 +1,5 @@
 package com.arvian.jelajahkota.core.data.repository
 
-import com.arvian.jelajahkota.R
 import com.arvian.jelajahkota.core.domain.model.User
 import com.arvian.jelajahkota.core.domain.repository.AuthRepository
 import kotlinx.coroutines.flow.Flow
@@ -36,10 +35,10 @@ class AuthRepositoryImpl(
                 id = "user_${trimmedEmail.lowercase().hashCode()}",
                 fullName = derivedName,
                 email = trimmedEmail,
-                phone = "+62 812-3456-7890",
-                city = "Kota Malang",
-                bio = "Menjelajahi Kota Malang bersama JelajahKota.",
-                avatarResId = R.drawable.img_user_avatar
+                phone = "",
+                city = "",
+                bio = "",
+                avatarResId = 0
             )
         }
         sessionStore.setUser(user)
@@ -64,9 +63,9 @@ class AuthRepositoryImpl(
             fullName = trimmedName,
             email = trimmedEmail,
             phone = "",
-            city = "Kota Malang",
+            city = "",
             bio = "",
-            avatarResId = R.drawable.img_user_avatar
+            avatarResId = 0
         )
         sessionStore.setUser(user)
         return Result.success(user)
@@ -81,8 +80,8 @@ class AuthRepositoryImpl(
     }
 
     override suspend fun verifyOtp(email: String, otp: String): Result<Unit> {
-        if (otp.length != 4 || !otp.all { it.isDigit() }) {
-            return Result.failure(IllegalArgumentException("Kode OTP harus terdiri dari 4 digit angka."))
+        if (otp.length != 6 || !otp.all { it.isDigit() }) {
+            return Result.failure(IllegalArgumentException("Kode OTP harus terdiri dari 6 digit angka."))
         }
         return Result.success(Unit)
     }

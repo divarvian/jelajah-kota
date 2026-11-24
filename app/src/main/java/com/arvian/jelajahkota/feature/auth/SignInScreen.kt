@@ -1,6 +1,5 @@
 package com.arvian.jelajahkota.feature.auth
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -27,16 +25,17 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -48,30 +47,26 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.arvian.jelajahkota.R
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaPasswordTextField
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaPrimaryButton
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaTextField
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaTopAppBar
-import com.arvian.jelajahkota.core.designsystem.theme.BorderColor
-import com.arvian.jelajahkota.core.designsystem.theme.BrandBluePrimary
 import com.arvian.jelajahkota.core.designsystem.theme.BrandOrangeAccent
-import com.arvian.jelajahkota.core.designsystem.theme.DarkText
-import com.arvian.jelajahkota.core.designsystem.theme.ErrorRed
-import com.arvian.jelajahkota.core.designsystem.theme.GoogleButtonBorder
+import com.arvian.jelajahkota.core.designsystem.theme.JelajahKotaTheme
 import com.arvian.jelajahkota.core.designsystem.theme.JosefinSans
 import com.arvian.jelajahkota.core.designsystem.theme.Lato
-import com.arvian.jelajahkota.core.designsystem.theme.SubtitleText
-import com.arvian.jelajahkota.core.designsystem.theme.White
 
 @Composable
 fun SignInRoute(
     viewModel: SignInViewModel,
+    canNavigateBack: Boolean,
     onNavigateBack: () -> Unit,
     onNavigateToSignUp: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
     onSignInSuccess: () -> Unit,
     modifier: Modifier = Modifier,
-    onGoogleSignInClick: () -> Unit = {}
+    onContinueAsGuest: (() -> Unit)? = null
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -84,14 +79,15 @@ fun SignInRoute(
 
     SignInScreen(
         uiState = uiState,
+        canNavigateBack = canNavigateBack,
         onEmailChange = viewModel::onEmailChange,
         onPasswordChange = viewModel::onPasswordChange,
         onRememberMeChange = viewModel::onRememberMeChange,
         onSignInClick = viewModel::signIn,
-        onGoogleSignInClick = onGoogleSignInClick,
         onNavigateBack = onNavigateBack,
         onNavigateToSignUp = onNavigateToSignUp,
         onNavigateToForgotPassword = onNavigateToForgotPassword,
+        onContinueAsGuest = onContinueAsGuest,
         modifier = modifier
     )
 }
@@ -107,15 +103,18 @@ fun SignInScreen(
     onNavigateToSignUp: () -> Unit,
     onNavigateToForgotPassword: () -> Unit,
     modifier: Modifier = Modifier,
-    onGoogleSignInClick: () -> Unit = {}
+    canNavigateBack: Boolean = false,
+    onContinueAsGuest: (() -> Unit)? = null
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(White)
+            .background(colorScheme.background)
     ) {
         JelajahKotaTopAppBar(
-            onNavigateBack = onNavigateBack
+            onNavigateBack = if (canNavigateBack) onNavigateBack else null
         )
 
         Column(
@@ -138,7 +137,7 @@ fun SignInScreen(
                     fontFamily = JosefinSans,
                     fontWeight = FontWeight.Bold,
                     fontSize = 28.sp,
-                    color = DarkText
+                    color = colorScheme.onBackground
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Box(
@@ -152,19 +151,19 @@ fun SignInScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Text(
-                text = "Selamat Datang!",
+                text = stringResource(R.string.auth_welcome_title),
                 fontFamily = Lato,
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp,
-                color = DarkText
+                color = colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Masuk ke akun Anda",
+                text = stringResource(R.string.auth_welcome_subtitle),
                 fontFamily = Lato,
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,
-                color = SubtitleText
+                color = colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -172,8 +171,8 @@ fun SignInScreen(
             JelajahKotaTextField(
                 value = uiState.email,
                 onValueChange = onEmailChange,
-                label = "Email",
-                placeholder = "nama@email.com",
+                label = stringResource(R.string.auth_email_label),
+                placeholder = stringResource(R.string.auth_email_placeholder),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next
@@ -181,8 +180,7 @@ fun SignInScreen(
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Email,
-                        contentDescription = null,
-                        tint = BrandBluePrimary
+                        contentDescription = null
                     )
                 }
             )
@@ -192,8 +190,8 @@ fun SignInScreen(
             JelajahKotaPasswordTextField(
                 value = uiState.password,
                 onValueChange = onPasswordChange,
-                label = "Kata Sandi",
-                placeholder = "Masukkan kata sandi",
+                label = stringResource(R.string.auth_password_label),
+                placeholder = stringResource(R.string.auth_password_placeholder),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password,
                     imeAction = ImeAction.Done
@@ -210,7 +208,7 @@ fun SignInScreen(
                     fontFamily = Lato,
                     fontWeight = FontWeight.Normal,
                     fontSize = 12.sp,
-                    color = ErrorRed
+                    color = colorScheme.error
                 )
             }
 
@@ -221,30 +219,33 @@ fun SignInScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable { onRememberMeChange(!uiState.rememberMe) }
+                ) {
                     Checkbox(
                         checked = uiState.rememberMe,
                         onCheckedChange = onRememberMeChange,
                         colors = CheckboxDefaults.colors(
-                            checkedColor = BrandBluePrimary,
-                            uncheckedColor = BorderColor
+                            checkedColor = colorScheme.primary,
+                            uncheckedColor = colorScheme.outlineVariant
                         )
                     )
                     Text(
-                        text = "Ingat Saya",
+                        text = stringResource(R.string.auth_remember_email),
                         fontFamily = Lato,
                         fontWeight = FontWeight.Normal,
                         fontSize = 13.sp,
-                        color = SubtitleText
+                        color = colorScheme.onSurfaceVariant
                     )
                 }
 
                 Text(
-                    text = "Lupa Kata Sandi?",
+                    text = stringResource(R.string.auth_forgot_password),
                     fontFamily = Lato,
                     fontWeight = FontWeight.Medium,
                     fontSize = 13.sp,
-                    color = BrandBluePrimary,
+                    color = colorScheme.primary,
                     modifier = Modifier
                         .clickable { onNavigateToForgotPassword() }
                         .padding(vertical = 6.dp)
@@ -260,7 +261,7 @@ fun SignInScreen(
                         .height(48.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = BrandBluePrimary)
+                    CircularProgressIndicator(color = colorScheme.primary)
                 }
             } else {
                 JelajahKotaPrimaryButton(
@@ -271,51 +272,9 @@ fun SignInScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                HorizontalDivider(
-                    modifier = Modifier.weight(1f),
-                    color = BorderColor
-                )
-                Text(
-                    text = "  atau masuk dengan  ",
-                    fontFamily = Lato,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 14.sp,
-                    color = SubtitleText
-                )
-                HorizontalDivider(
-                    modifier = Modifier.weight(1f),
-                    color = BorderColor
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            OutlinedButton(
-                onClick = onGoogleSignInClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                shape = RoundedCornerShape(30.dp),
-                border = BorderStroke(1.dp, GoogleButtonBorder)
-            ) {
-                Text(
-                    text = "G  Masuk dengan Google",
-                    fontFamily = Lato,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
-                    color = DarkText
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
             val annotatedString = buildAnnotatedString {
                 append("Belum punya akun? ")
-                withStyle(style = SpanStyle(color = BrandBluePrimary, fontWeight = FontWeight.Bold)) {
+                withStyle(style = SpanStyle(color = colorScheme.primary, fontWeight = FontWeight.Bold)) {
                     append("Daftar Akun.")
                 }
             }
@@ -324,13 +283,29 @@ fun SignInScreen(
                 text = annotatedString,
                 fontFamily = Lato,
                 fontSize = 14.sp,
-                color = DarkText,
+                color = colorScheme.onBackground,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onNavigateToSignUp() }
                     .padding(vertical = 8.dp)
             )
+
+            if (!canNavigateBack && onContinueAsGuest != null) {
+                Spacer(modifier = Modifier.height(8.dp))
+                TextButton(
+                    onClick = onContinueAsGuest,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = stringResource(R.string.auth_continue_as_guest),
+                        fontFamily = Lato,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 14.sp,
+                        color = colorScheme.onSurfaceVariant
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -340,14 +315,17 @@ fun SignInScreen(
 @Preview(showBackground = true)
 @Composable
 private fun SignInScreenPreview() {
-    SignInScreen(
-        uiState = SignInUiState(email = "penjelajah@jelajahkota.id"),
-        onEmailChange = {},
-        onPasswordChange = {},
-        onRememberMeChange = {},
-        onSignInClick = {},
-        onNavigateBack = {},
-        onNavigateToSignUp = {},
-        onNavigateToForgotPassword = {}
-    )
+    JelajahKotaTheme {
+        SignInScreen(
+            uiState = SignInUiState(email = "penjelajah@jelajahkota.id"),
+            onEmailChange = {},
+            onPasswordChange = {},
+            onRememberMeChange = {},
+            onSignInClick = {},
+            onNavigateBack = {},
+            onNavigateToSignUp = {},
+            onNavigateToForgotPassword = {},
+            onContinueAsGuest = {}
+        )
+    }
 }

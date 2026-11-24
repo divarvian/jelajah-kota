@@ -114,6 +114,33 @@ class ExploreViewModelTest {
         assertEquals(ExploreSortOption.POPULAR, state.selectedSortOption)
     }
 
+    @Test
+    fun applyExternalFilter_updatesExploreStateReactivelyWithoutRecreatingViewModel() = runTest {
+        advanceUntilIdle()
+
+        viewModel.applyExternalFilter(query = "", city = "Malang", category = null)
+        assertEquals("Malang", viewModel.uiState.value.selectedCity)
+        assertEquals(2, viewModel.uiState.value.filteredPlaces.size)
+
+        viewModel.applyExternalFilter(query = "", city = "Semua", category = "Pegunungan")
+        assertNull(viewModel.uiState.value.selectedCity)
+        assertEquals("Pegunungan", viewModel.uiState.value.selectedCategory)
+        assertEquals(listOf("bromo"), viewModel.uiState.value.filteredPlaces.map { it.id })
+
+        viewModel.applyExternalFilter()
+        assertNull(viewModel.uiState.value.selectedCity)
+        assertNull(viewModel.uiState.value.selectedCategory)
+        assertEquals(3, viewModel.uiState.value.filteredPlaces.size)
+    }
+
+    @Test
+    fun synchronousCacheSnapshot_avoidsFrameZeroLoadingSpinner() {
+        val cachedVm = ExploreViewModel(fakeRepository)
+        val initialState = cachedVm.uiState.value
+        assertFalse(initialState.isLoading)
+        assertEquals(3, initialState.allPlaces.size)
+    }
+
     private class TestFakePlacesRepository : PlacesRepository {
         private val places = listOf(
             Place(
@@ -176,5 +203,15 @@ class ExploreViewModelTest {
         override fun getPlaces(): Flow<List<Place>> = flowOf(places)
         override fun getPlaceById(id: String): Flow<Place?> = flowOf(places.find { it.id == id })
         override fun searchPlaces(query: String, cityId: String?, categoryId: String?): Flow<List<Place>> = flowOf(places)
+        override fun getCachedPlaces(): List<Place> = places
+        override fun getCachedCityDestinations(): List<CityDestination> = listOf(
+            CityDestination("malang", "Malang", 0),
+            CityDestination("jogja", "Yogyakarta", 0)
+        )
+        override fun getCachedCategories(): List<CategoryItem> = listOf(
+            CategoryItem("cat_city", "Wisata Kota", 0),
+            CategoryItem("cat_mountain", "Pegunungan", 0),
+            CategoryItem("cat_nature", "Wisata Alam", 0)
+        )
     }
 }

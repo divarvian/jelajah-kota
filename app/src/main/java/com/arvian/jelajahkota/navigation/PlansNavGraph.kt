@@ -5,10 +5,10 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
+import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaTab
 import com.arvian.jelajahkota.di.AppContainer
 import com.arvian.jelajahkota.feature.plans.DatePickerRoute
 import com.arvian.jelajahkota.feature.plans.PlanConfirmationRoute
-import com.arvian.jelajahkota.feature.plans.PlansListRoute
 import com.arvian.jelajahkota.feature.plans.PlansViewModel
 
 internal fun NavGraphBuilder.plansNavGraph(
@@ -16,36 +16,19 @@ internal fun NavGraphBuilder.plansNavGraph(
     container: AppContainer,
     showMessage: (String) -> Unit
 ) {
-    composable<PlansListDestination> {
-        val plansListViewModel: PlansViewModel = viewModel(
-            factory = PlansViewModel.Factory(
-                plansRepository = container.plansRepository,
-                placesRepository = container.placesRepository
-            )
-        )
-        PlansListRoute(
-            viewModel = plansListViewModel,
-            onNavigateToPlaceDetail = { placeId ->
-                navController.navigate(PlaceDetailDestination(placeId = placeId))
-            },
-            onNavigateToExplore = {
-                navController.navigateTopLevelTab(ExploreDestination())
-            }
-        )
-    }
-
     composable<DatePickerDestination> { backStackEntry ->
         val destination: DatePickerDestination = backStackEntry.toRoute()
         val plansViewModel: PlansViewModel = viewModel(
             factory = PlansViewModel.Factory(
                 plansRepository = container.plansRepository,
                 placesRepository = container.placesRepository,
-                placeId = destination.placeId
+                placeId = destination.placeId,
+                authRepository = container.authRepository
             )
         )
         DatePickerRoute(
             viewModel = plansViewModel,
-            onNavigateBack = { navController.popBackStack() },
+            onNavigateBack = { navController.safePopBackStack() },
             onNavigateToConfirmation = { startEpochDay, endEpochDay ->
                 navController.navigate(
                     PlanConfirmationDestination(
@@ -66,15 +49,19 @@ internal fun NavGraphBuilder.plansNavGraph(
                 placesRepository = container.placesRepository,
                 placeId = destination.placeId,
                 initialStartEpochDay = destination.startEpochDay,
-                initialEndEpochDay = destination.endEpochDay
+                initialEndEpochDay = destination.endEpochDay,
+                authRepository = container.authRepository
             )
         )
         PlanConfirmationRoute(
             viewModel = plansViewModel,
-            onNavigateBack = { navController.popBackStack() },
+            onNavigateBack = { navController.safePopBackStack() },
             onPlanConfirmed = {
                 showMessage("Rencana kunjungan berhasil dijadwalkan!")
-                navController.navigateTopLevelTab(PlansListDestination, restore = false)
+                navController.navigateToMainTab(
+                    coordinator = container.mainShellCoordinator,
+                    tab = JelajahKotaTab.JADWALKAN
+                )
             }
         )
     }

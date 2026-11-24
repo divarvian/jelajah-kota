@@ -1,6 +1,5 @@
 package com.arvian.jelajahkota.feature.plans
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +27,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,24 +36,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaAsyncImage
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaPrimaryButton
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaTextField
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaTopAppBar
-import com.arvian.jelajahkota.core.designsystem.theme.BorderColor
-import com.arvian.jelajahkota.core.designsystem.theme.BrandBluePrimary
-import com.arvian.jelajahkota.core.designsystem.theme.DarkText
-import com.arvian.jelajahkota.core.designsystem.theme.ErrorRed
+import com.arvian.jelajahkota.core.designsystem.theme.JelajahKotaTheme
 import com.arvian.jelajahkota.core.designsystem.theme.JosefinSans
 import com.arvian.jelajahkota.core.designsystem.theme.Lato
-import com.arvian.jelajahkota.core.designsystem.theme.SubtitleText
-import com.arvian.jelajahkota.core.designsystem.theme.SurfaceGray
-import com.arvian.jelajahkota.core.designsystem.theme.White
 
 @Composable
 fun PlanConfirmationRoute(
@@ -92,10 +86,12 @@ fun PlanConfirmationScreen(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(White)
+            .background(colorScheme.background)
     ) {
         JelajahKotaTopAppBar(
             title = "Konfirmasi Rencana",
@@ -112,7 +108,6 @@ fun PlanConfirmationScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Breakdown Row 1: Tanggal
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -123,22 +118,21 @@ fun PlanConfirmationScreen(
                     fontFamily = Lato,
                     fontWeight = FontWeight.Normal,
                     fontSize = 14.sp,
-                    color = DarkText
+                    color = colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = uiState.dateRangeFormatted,
                     fontFamily = Lato,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
-                    color = DarkText
+                    color = colorScheme.onBackground
                 )
             }
 
             Spacer(modifier = Modifier.height(14.dp))
-            HorizontalDivider(color = BorderColor)
+            HorizontalDivider(color = colorScheme.outlineVariant)
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Breakdown Row 2: Jumlah Hari
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -149,22 +143,21 @@ fun PlanConfirmationScreen(
                     fontFamily = Lato,
                     fontWeight = FontWeight.Normal,
                     fontSize = 14.sp,
-                    color = DarkText
+                    color = colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = "${uiState.durationDays} Hari",
                     fontFamily = Lato,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
-                    color = DarkText
+                    color = colorScheme.onBackground
                 )
             }
 
             Spacer(modifier = Modifier.height(14.dp))
-            HorizontalDivider(color = BorderColor)
+            HorizontalDivider(color = colorScheme.outlineVariant)
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Breakdown Row 3: Jumlah Pengunjung
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -175,7 +168,7 @@ fun PlanConfirmationScreen(
                     fontFamily = Lato,
                     fontWeight = FontWeight.Normal,
                     fontSize = 14.sp,
-                    color = DarkText
+                    color = colorScheme.onSurfaceVariant
                 )
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -184,12 +177,12 @@ fun PlanConfirmationScreen(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(SurfaceGray)
+                            .background(colorScheme.surfaceVariant)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Remove,
                             contentDescription = "Kurangi pengunjung",
-                            tint = DarkText,
+                            tint = colorScheme.onSurface,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -199,7 +192,7 @@ fun PlanConfirmationScreen(
                         fontFamily = Lato,
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
-                        color = DarkText,
+                        color = colorScheme.onBackground,
                         modifier = Modifier.padding(horizontal = 12.dp)
                     )
 
@@ -208,12 +201,12 @@ fun PlanConfirmationScreen(
                         modifier = Modifier
                             .size(36.dp)
                             .clip(CircleShape)
-                            .background(SurfaceGray)
+                            .background(colorScheme.surfaceVariant)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = "Tambah pengunjung",
-                            tint = DarkText,
+                            tint = colorScheme.onSurface,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -221,22 +214,22 @@ fun PlanConfirmationScreen(
             }
 
             Spacer(modifier = Modifier.height(14.dp))
-            HorizontalDivider(color = BorderColor)
+            HorizontalDivider(color = colorScheme.outlineVariant)
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Destination Preview Card
             val place = uiState.selectedPlace
             if (place != null) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(20.dp))
-                        .background(SurfaceGray)
+                        .background(colorScheme.surfaceVariant)
                         .padding(14.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(
-                        painter = painterResource(id = place.imageResId),
+                    JelajahKotaAsyncImage(
+                        imageUrl = place.imageUrl,
+                        fallbackResId = place.imageResId,
                         contentDescription = place.name,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -252,14 +245,14 @@ fun PlanConfirmationScreen(
                             fontFamily = JosefinSans,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp,
-                            color = DarkText
+                            color = colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 imageVector = Icons.Default.LocationOn,
                                 contentDescription = null,
-                                tint = BrandBluePrimary,
+                                tint = colorScheme.primary,
                                 modifier = Modifier.size(14.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
@@ -268,7 +261,7 @@ fun PlanConfirmationScreen(
                                 fontFamily = Lato,
                                 fontWeight = FontWeight.Normal,
                                 fontSize = 13.sp,
-                                color = SubtitleText
+                                color = colorScheme.onSurfaceVariant
                             )
                         }
                     }
@@ -277,7 +270,6 @@ fun PlanConfirmationScreen(
                 Spacer(modifier = Modifier.height(20.dp))
             }
 
-            // Departure & Return Schedule Badges
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -286,7 +278,7 @@ fun PlanConfirmationScreen(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(16.dp))
-                        .border(1.dp, BrandBluePrimary, RoundedCornerShape(16.dp))
+                        .border(1.dp, colorScheme.primary, RoundedCornerShape(16.dp))
                         .padding(14.dp)
                 ) {
                     Text(
@@ -294,7 +286,7 @@ fun PlanConfirmationScreen(
                         fontFamily = Lato,
                         fontWeight = FontWeight.Normal,
                         fontSize = 12.sp,
-                        color = SubtitleText
+                        color = colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -302,7 +294,7 @@ fun PlanConfirmationScreen(
                         fontFamily = Lato,
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
-                        color = DarkText
+                        color = colorScheme.onBackground
                     )
                 }
 
@@ -310,7 +302,7 @@ fun PlanConfirmationScreen(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(16.dp))
-                        .border(1.dp, BrandBluePrimary, RoundedCornerShape(16.dp))
+                        .border(1.dp, colorScheme.primary, RoundedCornerShape(16.dp))
                         .padding(14.dp)
                 ) {
                     Text(
@@ -318,7 +310,7 @@ fun PlanConfirmationScreen(
                         fontFamily = Lato,
                         fontWeight = FontWeight.Normal,
                         fontSize = 12.sp,
-                        color = SubtitleText
+                        color = colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -326,14 +318,13 @@ fun PlanConfirmationScreen(
                         fontFamily = Lato,
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
-                        color = DarkText
+                        color = colorScheme.onBackground
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Optional Notes Field
             JelajahKotaTextField(
                 value = uiState.notes,
                 onValueChange = onNotesChanged,
@@ -348,7 +339,7 @@ fun PlanConfirmationScreen(
                     text = uiState.errorMessage,
                     fontFamily = Lato,
                     fontSize = 12.sp,
-                    color = ErrorRed
+                    color = colorScheme.error
                 )
             }
 
@@ -361,7 +352,7 @@ fun PlanConfirmationScreen(
                         .height(48.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = BrandBluePrimary)
+                    CircularProgressIndicator(color = colorScheme.primary)
                 }
             } else {
                 JelajahKotaPrimaryButton(
@@ -379,12 +370,14 @@ fun PlanConfirmationScreen(
 @Preview(showBackground = true)
 @Composable
 private fun PlanConfirmationScreenPreview() {
-    PlanConfirmationScreen(
-        uiState = PlansUiState(),
-        onIncrementVisitors = {},
-        onDecrementVisitors = {},
-        onNotesChanged = {},
-        onConfirmClick = {},
-        onNavigateBack = {}
-    )
+    JelajahKotaTheme {
+        PlanConfirmationScreen(
+            uiState = PlansUiState(),
+            onIncrementVisitors = {},
+            onDecrementVisitors = {},
+            onNotesChanged = {},
+            onConfirmClick = {},
+            onNavigateBack = {}
+        )
+    }
 }

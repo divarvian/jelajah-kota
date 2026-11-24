@@ -1,16 +1,24 @@
 package com.arvian.jelajahkota.core.data.repository
 
+import android.content.Context
+import com.arvian.jelajahkota.core.data.supabase.ImageUploadValidator
 import com.arvian.jelajahkota.core.domain.model.User
 import com.arvian.jelajahkota.core.domain.repository.ProfileRepository
+import com.arvian.jelajahkota.core.domain.validation.ProfileValidator
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import java.io.File
 
 class ProfileRepositoryImpl(
-    private val sessionStore: UserSessionStore = UserSessionStore()
+    private val sessionStore: UserSessionStore = UserSessionStore(),
+    private val cacheDir: File? = null
 ) : ProfileRepository {
 
-    override fun getProfile(): Flow<User> =
-        sessionStore.currentUser.map { it ?: UserSessionStore.DEFAULT_USER }
+    constructor(sessionStore: UserSessionStore, context: Context) : this(
+        sessionStore = sessionStore,
+        cacheDir = File(context.cacheDir, "local_avatars").apply { mkdirs() }
+    )
+
+    override fun getProfile(): Flow<User?> = sessionStore.currentUser
 
     override suspend fun updateProfile(
         fullName: String,
@@ -20,29 +28,58 @@ class ProfileRepositoryImpl(
         birthDate: String,
         gender: String
     ): Result<User> {
-        val trimmedName = fullName.trim()
-        if (trimmedName.isBlank()) {
-            return Result.failure(IllegalArgumentException("Nama tidak boleh kosong."))
+        val (validated, errors) = ProfileValidator.validate(
+            fullName = fullName,
+            phone = phone,
+            city = city,
+            bio = bio,
+            birthDate = birthDate,
+            gender = gender
+        )
+        if (validated == null) {
+            return Result.failure(IllegalArgumentException(errors.firstErrorMessage ?: "Data profil tidak valid."))
         }
-        var updatedUser = UserSessionStore.DEFAULT_USER
-        sessionStore.updateUser { current ->
-            current.copy(
-                fullName = trimmedName,
-                phone = phone.trim(),
-                city = city.trim().ifBlank { current.city },
-                bio = bio.trim(),
-                birthDate = birthDate.trim(),
-                gender = gender.trim()
-            ).also { updatedUser = it }
-        }
+        val activeUser = sessionStore.currentUser.value
+            ?: return Result.failure(IllegalStateException("Silakan masuk terlebih dahulu untuk mengubah profil."))
+
+        val updatedUser = activeUser.copy(
+            fullName = validated.fullName,
+            phone = validated.phone,
+            city = validated.city,
+            bio = validated.bio,
+            birthDate = validated.birthDateIso.orEmpty(),
+            gender = validated.genderCode.orEmpty()
+        )
+        sessionStore.setUser(updatedUser)
         return Result.success(updatedUser)
     }
 
     override suspend fun updateAvatar(avatarUri: String): Result<User> {
-        var updatedUser = UserSessionStore.DEFAULT_USER
-        sessionStore.updateUser { current ->
-            current.copy(avatarUrl = avatarUri).also { updatedUser = it }
-        }
+        val activeUser = sessionStore.currentUser.value
+            ?: return Result.failure(IllegalStateException("Silakan masuk terlebih dahulu untuk mengganti foto profil."))
+
+        val updatedUser = activeUser.copy(avatarUrl = avatarUri)
+        sessionStore.setUser(updatedUser)
         return Result.success(updatedUser)
+    }
+
+    override suspend fun uploadAvatar(bytes: ByteArray, declaredMimeType: String?): Result<User> {
+        val activeUser = sessionStore.currentUser.value
+            ?: return Result.failure(IllegalStateException("Silakan masuk terlebih dahulu untuk mengganti foto profil."))
+
+        val validated = ImageUploadValidator.validate(
+            bytes = bytes,
+            declaredMimeType = declaredMimeType,
+            maxBytes = ImageUploadValidator.MAX_AVATAR_BYTES
+        ).getOrElse { return Result.failure(it) }
+
+        val uriString = if (cacheDir != null) {
+            val outFile = File(cacheDir, "avatar_${activeUser.id}_${System.currentTimeMillis()}.${validated.extension}")
+            outFile.writeBytes(validated.bytes)
+            outFile.toURI().toString()
+        } else {
+            "local://avatar_${System.currentTimeMillis()}.${validated.extension}"
+        }
+        return updateAvatar(uriString)
     }
 }

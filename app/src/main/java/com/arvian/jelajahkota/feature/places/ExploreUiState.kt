@@ -1,10 +1,12 @@
 package com.arvian.jelajahkota.feature.places
 
 import androidx.compose.runtime.Immutable
+import com.arvian.jelajahkota.core.common.location.UserCoordinates
 import com.arvian.jelajahkota.core.domain.model.Place
 
 enum class ExploreSortOption(val label: String) {
     POPULAR("Paling Populer"),
+    NEAREST("Terdekat"),
     RATING_DESC("Rating Tertinggi"),
     PRICE_ASC("Harga Termurah"),
     NAME_ASC("Nama (A-Z)")
@@ -20,7 +22,9 @@ data class ExploreUiState(
     val availableCities: List<String> = listOf("Semua"),
     val availableCategories: List<String> = listOf("Semua"),
     val allPlaces: List<Place> = emptyList(),
-    val isLoading: Boolean = false
+    val userLocation: UserCoordinates? = null,
+    val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false
 ) {
     val filteredPlaces: List<Place>
         get() {
@@ -45,9 +49,21 @@ data class ExploreUiState(
                 list = list.filter { it.category.equals(selectedCategory, ignoreCase = true) }
             }
 
+            val loc = userLocation
             return when (selectedSortOption) {
-                ExploreSortOption.POPULAR -> list.sortedByDescending { it.reviewCount }
-                ExploreSortOption.RATING_DESC -> list.sortedByDescending { it.rating }
+                ExploreSortOption.POPULAR -> list.sortedWith(
+                    compareByDescending<Place> { it.isPopular }
+                        .thenByDescending { it.reviewCount }
+                        .thenByDescending { it.rating }
+                )
+                ExploreSortOption.NEAREST -> if (loc != null) {
+                    list.sortedBy { it.distanceKmFrom(loc.latitude, loc.longitude) ?: Double.MAX_VALUE }
+                } else {
+                    list.sortedByDescending { it.isPopular }
+                }
+                ExploreSortOption.RATING_DESC -> list.sortedWith(
+                    compareByDescending<Place> { it.rating }.thenByDescending { it.reviewCount }
+                )
                 ExploreSortOption.PRICE_ASC -> list.sortedWith(
                     compareBy<Place> { it.ticketPriceAmount }.thenByDescending { it.rating }
                 )

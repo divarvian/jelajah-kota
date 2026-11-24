@@ -1,6 +1,5 @@
 package com.arvian.jelajahkota.feature.places.component
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,92 +17,87 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.arvian.jelajahkota.core.designsystem.theme.BrandBlueContainer
-import com.arvian.jelajahkota.core.designsystem.theme.BrandBluePrimary
-import com.arvian.jelajahkota.core.designsystem.theme.DarkText
+import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaAsyncImage
 import com.arvian.jelajahkota.core.designsystem.theme.Lato
-import com.arvian.jelajahkota.core.designsystem.theme.White
 import com.arvian.jelajahkota.core.domain.model.CategoryItem
 
 @Composable
 fun CategorySection(
     categories: List<CategoryItem>,
-    selectedCategoryId: String?,
-    onCategoryClick: (String) -> Unit,
-    onSeeAllClick: () -> Unit,
+    selectedCategoryName: String?,
+    onCategoryClick: (String?) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier.fillMaxWidth()
-    ) {
-        // Section Header
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Pilih Kategori",
-                fontFamily = Lato,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp,
-                color = DarkText
-            )
+    val colorScheme = MaterialTheme.colorScheme
 
-            Text(
-                text = "Lihat Semua",
-                fontFamily = Lato,
-                fontWeight = FontWeight.Normal,
-                fontSize = 13.sp,
-                color = BrandBluePrimary,
-                modifier = Modifier.clickable(onClick = onSeeAllClick)
-            )
-        }
-
-        // Horizontal Category Carousel (smooth scrolling, wrap content)
+    Column(modifier = modifier.fillMaxWidth()) {
         LazyRow(
             contentPadding = PaddingValues(horizontal = 24.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            items(categories, key = { it.id }) { category ->
-                val isSelected = category.id == selectedCategoryId
-                Row(
+            item(key = "cat_all") {
+                val isSelected = selectedCategoryName.isNullOrBlank()
+                Box(
                     modifier = Modifier
-                        .height(46.dp)
-                        .clip(RoundedCornerShape(23.dp))
-                        .background(if (isSelected) BrandBlueContainer else White)
+                        .height(40.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(if (isSelected) colorScheme.primary else colorScheme.surfaceContainerLow)
                         .border(
                             width = 1.dp,
-                            color = if (isSelected) BrandBluePrimary else Color(0xFFE0E0E0),
-                            shape = RoundedCornerShape(23.dp)
+                            color = if (isSelected) colorScheme.primary else colorScheme.outlineVariant,
+                            shape = RoundedCornerShape(20.dp)
                         )
-                        .clickable { onCategoryClick(category.id) }
-                        .padding(horizontal = 14.dp),
+                        .clickable { onCategoryClick(null) }
+                        .padding(horizontal = 16.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Semua",
+                        fontFamily = Lato,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
+                        fontSize = 13.sp,
+                        color = if (isSelected) colorScheme.onPrimary else colorScheme.onSurface
+                    )
+                }
+            }
+
+            items(categories, key = { it.id }) { category ->
+                val isSelected = selectedCategoryName.equals(category.name, ignoreCase = true)
+                Row(
+                    modifier = Modifier
+                        .height(40.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(if (isSelected) colorScheme.primary else colorScheme.surfaceContainerLow)
+                        .border(
+                            width = 1.dp,
+                            color = if (isSelected) colorScheme.primary else colorScheme.outlineVariant,
+                            shape = RoundedCornerShape(20.dp)
+                        )
+                        .clickable { onCategoryClick(category.name) }
+                        .padding(start = 8.dp, end = 14.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(30.dp)
-                            .clip(RoundedCornerShape(8.dp)),
+                            .size(26.dp)
+                            .clip(RoundedCornerShape(13.dp)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Image(
-                            painter = painterResource(id = category.iconResId),
+                        JelajahKotaAsyncImage(
+                            imageUrl = category.iconUrl,
+                            fallbackResId = category.iconResId,
                             contentDescription = category.name,
-                            modifier = Modifier.size(30.dp),
+                            modifier = Modifier.size(26.dp),
                             contentScale = ContentScale.Crop
                         )
                     }
@@ -114,8 +108,8 @@ fun CategorySection(
                         text = category.name,
                         fontFamily = Lato,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
-                        fontSize = 14.sp,
-                        color = if (isSelected) BrandBluePrimary else DarkText
+                        fontSize = 13.sp,
+                        color = if (isSelected) colorScheme.onPrimary else colorScheme.onSurface
                     )
                 }
             }

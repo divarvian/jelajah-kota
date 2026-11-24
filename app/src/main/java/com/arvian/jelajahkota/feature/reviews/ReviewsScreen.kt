@@ -1,6 +1,5 @@
 package com.arvian.jelajahkota.feature.reviews
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +21,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.StarOutline
@@ -29,7 +30,9 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -44,28 +47,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.arvian.jelajahkota.core.designsystem.component.AuthRequiredDialog
+import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaLocalImage
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaPrimaryButton
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaTextField
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaTopAppBar
-import com.arvian.jelajahkota.core.designsystem.theme.BorderColor
-import com.arvian.jelajahkota.core.designsystem.theme.BrandBluePrimary
-import com.arvian.jelajahkota.core.designsystem.theme.DarkText
-import com.arvian.jelajahkota.core.designsystem.theme.ErrorRed
+import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaUserAvatar
+import com.arvian.jelajahkota.core.designsystem.theme.JelajahKotaTheme
 import com.arvian.jelajahkota.core.designsystem.theme.JosefinSans
 import com.arvian.jelajahkota.core.designsystem.theme.Lato
-import com.arvian.jelajahkota.core.designsystem.theme.RatingTrack
 import com.arvian.jelajahkota.core.designsystem.theme.StarYellow
-import com.arvian.jelajahkota.core.designsystem.theme.SubtitleText
-import com.arvian.jelajahkota.core.designsystem.theme.SurfaceGray
-import com.arvian.jelajahkota.core.designsystem.theme.White
 import com.arvian.jelajahkota.core.domain.model.Review
+import java.util.Locale
 import kotlin.math.roundToInt
 
 @Composable
@@ -73,14 +72,17 @@ fun ReviewsRoute(
     viewModel: ReviewsViewModel,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier,
-    onReviewSubmitted: () -> Unit = {}
+    onNavigateToSignIn: () -> Unit = {},
+    onShowMessage: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(uiState.submitSuccess) {
-        if (uiState.submitSuccess) {
+    LaunchedEffect(uiState.actionMessage) {
+        val message = uiState.actionMessage
+        if (message != null) {
+            viewModel.consumeActionMessage()
             viewModel.consumeSubmitSuccess()
-            onReviewSubmitted()
+            onShowMessage(message)
         }
     }
 
@@ -88,8 +90,11 @@ fun ReviewsRoute(
         uiState = uiState,
         onSearchQueryChange = viewModel::onSearchQueryChange,
         onSubmitReview = viewModel::submitReview,
+        onUpdateReview = viewModel::updateReview,
+        onDeleteReview = viewModel::deleteReview,
         onDismissError = viewModel::clearError,
         onNavigateBack = onNavigateBack,
+        onNavigateToSignIn = onNavigateToSignIn,
         modifier = modifier
     )
 }
@@ -99,16 +104,23 @@ fun ReviewsScreen(
     uiState: ReviewsUiState,
     onSearchQueryChange: (String) -> Unit,
     onSubmitReview: (rating: Int, content: String) -> Unit,
+    onUpdateReview: (reviewId: String, rating: Int, content: String) -> Unit,
+    onDeleteReview: (reviewId: String) -> Unit,
     onDismissError: () -> Unit,
     onNavigateBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onNavigateToSignIn: () -> Unit = {}
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     var showWriteReviewDialog by remember { mutableStateOf(false) }
+    var editingReview by remember { mutableStateOf<Review?>(null) }
+    var deletingReview by remember { mutableStateOf<Review?>(null) }
+    var showAuthPrompt by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(White)
+            .background(colorScheme.background)
     ) {
         JelajahKotaTopAppBar(
             title = "Rating dan Ulasan",
@@ -131,15 +143,13 @@ fun ReviewsScreen(
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
-                        contentDescription = null,
-                        tint = BrandBluePrimary
+                        contentDescription = null
                     )
                 }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Overall Rating Summary Header
             val filledStars = uiState.metrics.overallRating.roundToInt().coerceIn(0, 5)
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -152,7 +162,7 @@ fun ReviewsScreen(
                             Icon(
                                 imageVector = Icons.Default.Star,
                                 contentDescription = null,
-                                tint = if (index < filledStars) StarYellow else RatingTrack,
+                                tint = if (index < filledStars) StarYellow else colorScheme.outlineVariant,
                                 modifier = Modifier.size(20.dp)
                             )
                         }
@@ -160,14 +170,14 @@ fun ReviewsScreen(
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = if (uiState.metrics.totalReviews > 0) {
-                            String.format(java.util.Locale.US, "%.2f", uiState.metrics.overallRating)
+                            String.format(Locale.US, "%.2f", uiState.metrics.overallRating)
                         } else {
                             "0.0"
                         },
                         fontFamily = Lato,
                         fontWeight = FontWeight.Bold,
                         fontSize = 22.sp,
-                        color = DarkText
+                        color = colorScheme.onBackground
                     )
                 }
 
@@ -176,27 +186,27 @@ fun ReviewsScreen(
                     fontFamily = Lato,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
-                    color = DarkText
+                    color = colorScheme.onBackground
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            // Metrics Breakdown Progress Bars (Wisata-relevant Bahasa Indonesia)
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                MetricRow(name = "Kesesuaian", score = uiState.metrics.accuracy)
-                MetricRow(name = "Lokasi", score = uiState.metrics.location)
-                MetricRow(name = "Keramahan", score = uiState.metrics.communication)
-                MetricRow(name = "Kebersihan", score = uiState.metrics.cleanliness)
-                MetricRow(name = "Aksesibilitas", score = uiState.metrics.checkIn)
-                MetricRow(name = "Nilai", score = uiState.metrics.value)
+            // Honest 5-star to 1-star distribution computed strictly from real reviews
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                for (star in 5 downTo 1) {
+                    StarDistributionRow(
+                        star = star,
+                        fraction = uiState.metrics.fractionForStar(star),
+                        count = uiState.metrics.countForStar(star)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(28.dp))
-            HorizontalDivider(color = BorderColor)
+            HorizontalDivider(color = colorScheme.outlineVariant)
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Review List
             if (uiState.isLoading) {
                 Box(
                     modifier = Modifier
@@ -204,7 +214,7 @@ fun ReviewsScreen(
                         .height(100.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = BrandBluePrimary)
+                    CircularProgressIndicator(color = colorScheme.primary)
                 }
             } else if (uiState.filteredReviews.isEmpty()) {
                 Text(
@@ -215,16 +225,25 @@ fun ReviewsScreen(
                     },
                     fontFamily = Lato,
                     fontSize = 14.sp,
-                    color = SubtitleText,
+                    color = colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 24.dp)
                 )
             } else {
-                Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     uiState.filteredReviews.forEach { review ->
-                        ReviewItemCard(review = review)
+                        val isOwner = uiState.currentUser != null &&
+                            review.userId.isNotBlank() &&
+                            review.userId == uiState.currentUser.id
+
+                        ReviewItemCard(
+                            review = review,
+                            isOwner = isOwner,
+                            onEditClick = { editingReview = review },
+                            onDeleteClick = { deletingReview = review }
+                        )
                     }
                 }
             }
@@ -234,8 +253,12 @@ fun ReviewsScreen(
             JelajahKotaPrimaryButton(
                 text = "Tulis Ulasan",
                 onClick = {
-                    onDismissError()
-                    showWriteReviewDialog = true
+                    if (uiState.isLoggedIn) {
+                        onDismissError()
+                        showWriteReviewDialog = true
+                    } else {
+                        showAuthPrompt = true
+                    }
                 }
             )
 
@@ -243,8 +266,23 @@ fun ReviewsScreen(
         }
     }
 
+    if (showAuthPrompt) {
+        AuthRequiredDialog(
+            actionLabel = "menulis ulasan untuk destinasi ini",
+            onConfirmSignIn = {
+                showAuthPrompt = false
+                onNavigateToSignIn()
+            },
+            onDismiss = { showAuthPrompt = false }
+        )
+    }
+
     if (showWriteReviewDialog) {
-        WriteReviewDialog(
+        ReviewEditorDialog(
+            title = "Tulis Ulasan",
+            confirmLabel = "Kirim Ulasan",
+            initialRating = 5,
+            initialContent = "",
             isSubmitting = uiState.isSubmitting,
             errorMessage = uiState.errorMessage,
             onDismiss = {
@@ -259,24 +297,64 @@ fun ReviewsScreen(
             }
         )
     }
+
+    val reviewToEdit = editingReview
+    if (reviewToEdit != null) {
+        ReviewEditorDialog(
+            title = "Edit Ulasan",
+            confirmLabel = "Simpan",
+            initialRating = reviewToEdit.rating.roundToInt().coerceIn(1, 5),
+            initialContent = reviewToEdit.content,
+            isSubmitting = uiState.isSubmitting,
+            errorMessage = uiState.errorMessage,
+            onDismiss = {
+                onDismissError()
+                editingReview = null
+            },
+            onSubmit = { rating, content ->
+                onUpdateReview(reviewToEdit.id, rating, content)
+                if (content.isNotBlank()) {
+                    editingReview = null
+                }
+            }
+        )
+    }
+
+    val reviewToDelete = deletingReview
+    if (reviewToDelete != null) {
+        DeleteReviewConfirmDialog(
+            onConfirm = {
+                onDeleteReview(reviewToDelete.id)
+                deletingReview = null
+            },
+            onDismiss = { deletingReview = null }
+        )
+    }
 }
 
 @Composable
-private fun WriteReviewDialog(
+internal fun ReviewEditorDialog(
+    title: String,
+    confirmLabel: String,
+    initialRating: Int,
+    initialContent: String,
     isSubmitting: Boolean,
     errorMessage: String?,
     onDismiss: () -> Unit,
     onSubmit: (rating: Int, content: String) -> Unit
 ) {
-    var selectedRating by remember { mutableIntStateOf(5) }
-    var reviewText by remember { mutableStateOf("") }
+    val colorScheme = MaterialTheme.colorScheme
+    var selectedRating by remember(initialRating) { mutableIntStateOf(initialRating) }
+    var reviewText by remember(initialContent) { mutableStateOf(initialContent) }
     var localError by remember { mutableStateOf<String?>(null) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = colorScheme.surface,
+        titleContentColor = colorScheme.onSurface,
         title = {
             Text(
-                text = "Tulis Ulasan",
+                text = title,
                 fontFamily = JosefinSans,
                 fontWeight = FontWeight.Bold
             )
@@ -288,7 +366,7 @@ private fun WriteReviewDialog(
                     fontFamily = Lato,
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 13.sp,
-                    color = DarkText
+                    color = colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
@@ -299,7 +377,7 @@ private fun WriteReviewDialog(
                         Icon(
                             imageVector = if (star <= selectedRating) Icons.Default.Star else Icons.Outlined.StarOutline,
                             contentDescription = "Rating $star bintang",
-                            tint = if (star <= selectedRating) StarYellow else SubtitleText,
+                            tint = if (star <= selectedRating) StarYellow else colorScheme.onSurfaceVariant,
                             modifier = Modifier
                                 .size(34.dp)
                                 .clickable { selectedRating = star }
@@ -327,7 +405,7 @@ private fun WriteReviewDialog(
                         text = displayError,
                         fontFamily = Lato,
                         fontSize = 12.sp,
-                        color = ErrorRed
+                        color = colorScheme.error
                     )
                 }
             }
@@ -344,10 +422,10 @@ private fun WriteReviewDialog(
                 }
             ) {
                 Text(
-                    text = "Kirim Ulasan",
+                    text = confirmLabel,
                     fontFamily = Lato,
                     fontWeight = FontWeight.Bold,
-                    color = BrandBluePrimary
+                    color = colorScheme.primary
                 )
             }
         },
@@ -356,7 +434,7 @@ private fun WriteReviewDialog(
                 Text(
                     text = "Batal",
                     fontFamily = Lato,
-                    color = DarkText
+                    color = colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -364,51 +442,126 @@ private fun WriteReviewDialog(
 }
 
 @Composable
-private fun MetricRow(name: String, score: Double) {
+internal fun DeleteReviewConfirmDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val colorScheme = MaterialTheme.colorScheme
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = colorScheme.surface,
+        titleContentColor = colorScheme.onSurface,
+        textContentColor = colorScheme.onSurfaceVariant,
+        title = {
+            Text(
+                text = "Hapus Ulasan",
+                fontFamily = JosefinSans,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Text(
+                text = "Yakin ingin menghapus ulasan Anda ini? Tindakan tidak dapat dibatalkan.",
+                fontFamily = Lato,
+                fontSize = 14.sp
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(
+                    text = "Hapus",
+                    fontFamily = Lato,
+                    fontWeight = FontWeight.Bold,
+                    color = colorScheme.error
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = "Batal",
+                    fontFamily = Lato,
+                    color = colorScheme.onSurface
+                )
+            }
+        }
+    )
+}
+
+@Composable
+private fun StarDistributionRow(
+    star: Int,
+    fraction: Float,
+    count: Int
+) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = name,
-            fontFamily = Lato,
-            fontWeight = FontWeight.Normal,
-            fontSize = 15.sp,
-            color = DarkText,
-            modifier = Modifier.width(120.dp)
-        )
+        Row(
+            modifier = Modifier.width(42.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "$star",
+                fontFamily = Lato,
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+                color = colorScheme.onBackground
+            )
+            Spacer(modifier = Modifier.width(3.dp))
+            Icon(
+                imageVector = Icons.Default.Star,
+                contentDescription = null,
+                tint = StarYellow,
+                modifier = Modifier.size(14.dp)
+            )
+        }
 
         LinearProgressIndicator(
-            progress = { (score / 5.0).toFloat().coerceIn(0f, 1f) },
+            progress = { fraction.coerceIn(0f, 1f) },
             modifier = Modifier
                 .weight(1f)
                 .height(8.dp)
                 .clip(CircleShape),
-            color = DarkText,
-            trackColor = RatingTrack,
+            color = colorScheme.primary,
+            trackColor = colorScheme.surfaceVariant,
             strokeCap = StrokeCap.Round
         )
 
         Text(
-            text = String.format(java.util.Locale.US, "%.1f", score),
+            text = "$count",
             fontFamily = Lato,
-            fontWeight = FontWeight.Bold,
-            fontSize = 15.sp,
-            color = DarkText,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 13.sp,
+            color = colorScheme.onSurfaceVariant,
             textAlign = TextAlign.End,
-            modifier = Modifier.width(44.dp)
+            modifier = Modifier.width(36.dp)
         )
     }
 }
 
 @Composable
-private fun ReviewItemCard(review: Review) {
+internal fun ReviewItemCard(
+    review: Review,
+    isOwner: Boolean = false,
+    showPlaceName: Boolean = false,
+    onPlaceClick: (() -> Unit)? = null,
+    onEditClick: () -> Unit = {},
+    onDeleteClick: () -> Unit = {}
+) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(SurfaceGray)
+            .background(colorScheme.surfaceVariant)
+            .then(
+                if (onPlaceClick != null) Modifier.clickable(onClick = onPlaceClick) else Modifier
+            )
             .padding(16.dp)
     ) {
         Row(
@@ -416,47 +569,31 @@ private fun ReviewItemCard(review: Review) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (review.authorAvatarResId != 0) {
-                    Image(
-                        painter = painterResource(id = review.authorAvatarResId),
-                        contentDescription = review.authorName,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(BrandBluePrimary),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = review.authorName.take(1).uppercase(),
-                            fontFamily = JosefinSans,
-                            fontWeight = FontWeight.Bold,
-                            color = White
-                        )
-                    }
-                }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                JelajahKotaUserAvatar(
+                    avatarUrl = review.authorAvatarUrl,
+                    fullName = review.authorName,
+                    size = 40.dp,
+                    contentDescription = review.authorName
+                )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
                     Text(
-                        text = review.authorName,
+                        text = if (showPlaceName && review.placeName.isNotBlank()) review.placeName else review.authorName,
                         fontFamily = Lato,
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp,
-                        color = DarkText
+                        color = colorScheme.onSurface
                     )
                     Text(
                         text = review.date,
                         fontFamily = Lato,
                         fontWeight = FontWeight.Normal,
                         fontSize = 12.sp,
-                        color = SubtitleText
+                        color = colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -470,12 +607,38 @@ private fun ReviewItemCard(review: Review) {
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = String.format(java.util.Locale.US, "%.1f", review.rating),
+                    text = String.format(Locale.US, "%.1f", review.rating),
                     fontFamily = Lato,
                     fontWeight = FontWeight.Bold,
                     fontSize = 13.sp,
-                    color = DarkText
+                    color = colorScheme.onSurface
                 )
+
+                if (isOwner) {
+                    Spacer(modifier = Modifier.width(4.dp))
+                    IconButton(
+                        onClick = onEditClick,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit ulasan",
+                            tint = colorScheme.primary,
+                            modifier = Modifier.size(17.dp)
+                        )
+                    }
+                    IconButton(
+                        onClick = onDeleteClick,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Hapus ulasan",
+                            tint = colorScheme.error,
+                            modifier = Modifier.size(17.dp)
+                        )
+                    }
+                }
             }
         }
 
@@ -487,15 +650,15 @@ private fun ReviewItemCard(review: Review) {
             fontWeight = FontWeight.Normal,
             fontSize = 14.sp,
             lineHeight = 20.sp,
-            color = DarkText
+            color = colorScheme.onSurface
         )
 
         if (review.photoResIds.isNotEmpty()) {
             Spacer(modifier = Modifier.height(10.dp))
             LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(review.photoResIds) { photoRes ->
-                    Image(
-                        painter = painterResource(id = photoRes),
+                    JelajahKotaLocalImage(
+                        drawableResId = photoRes,
                         contentDescription = "Foto ulasan",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -511,23 +674,28 @@ private fun ReviewItemCard(review: Review) {
 @Preview(showBackground = true)
 @Composable
 private fun ReviewsScreenPreview() {
-    ReviewsScreen(
-        uiState = ReviewsUiState(
-            isLoading = false,
-            reviews = listOf(
-                Review(
-                    id = "1",
-                    placeId = "place_jodipan",
-                    authorName = "Budi Santoso",
-                    rating = 5.0,
-                    date = "2 hari lalu",
-                    content = "Tempatnya sangat bersih dan spot fotonya indah."
+    JelajahKotaTheme {
+        ReviewsScreen(
+            uiState = ReviewsUiState(
+                isLoading = false,
+                reviews = listOf(
+                    Review(
+                        id = "1",
+                        placeId = "place_jodipan",
+                        userId = "u1",
+                        authorName = "Budi Santoso",
+                        rating = 5.0,
+                        date = "2 hari lalu",
+                        content = "Tempatnya sangat bersih dan spot fotonya indah."
+                    )
                 )
-            )
-        ),
-        onSearchQueryChange = {},
-        onSubmitReview = { _, _ -> },
-        onDismissError = {},
-        onNavigateBack = {}
-    )
+            ),
+            onSearchQueryChange = {},
+            onSubmitReview = { _, _ -> },
+            onUpdateReview = { _, _, _ -> },
+            onDeleteReview = {},
+            onDismissError = {},
+            onNavigateBack = {}
+        )
+    }
 }

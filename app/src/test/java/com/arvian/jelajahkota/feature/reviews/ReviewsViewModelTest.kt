@@ -63,7 +63,7 @@ class ReviewsViewModelTest {
     }
 
     @Test
-    fun `submitReview rejects blank content and adds valid review using active profile`() = runTest {
+    fun `submitReview updateReview and deleteReview work end to end`() = runTest {
         testDispatcher.scheduler.advanceUntilIdle()
 
         viewModel.submitReview(5, "   ")
@@ -75,15 +75,25 @@ class ReviewsViewModelTest {
 
         assertTrue(viewModel.uiState.value.submitSuccess)
         assertEquals(3, viewModel.uiState.value.reviews.size)
-        assertEquals("Arvian Diva", viewModel.uiState.value.reviews.first().authorName)
-        assertEquals(3, viewModel.uiState.value.metrics.totalReviews)
+        val created = viewModel.uiState.value.reviews.first()
+        assertEquals("u1", created.userId)
+        assertEquals("Arvian Diva", created.authorName)
+
+        viewModel.updateReview(created.id, 4, "Diperbarui: sangat nyaman di pagi hari.")
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(4.0, viewModel.uiState.value.reviews.first().rating, 0.01)
+        assertEquals("Diperbarui: sangat nyaman di pagi hari.", viewModel.uiState.value.reviews.first().content)
+
+        viewModel.deleteReview(created.id)
+        testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(2, viewModel.uiState.value.reviews.size)
     }
 
     private class FakeReviewsRepository : ReviewsRepository {
         private val flow = MutableStateFlow(
             listOf(
-                Review(id = "1", placeId = "place_jodipan", authorName = "Budi", rating = 5.0, date = "2 hari lalu", content = "Tempatnya sangat bersih dan nyaman."),
-                Review(id = "2", placeId = "place_jodipan", authorName = "Siti", rating = 4.5, date = "3 hari lalu", content = "Pemandangan bagus.")
+                Review(id = "1", placeId = "place_jodipan", userId = "other1", authorName = "Budi", rating = 5.0, date = "2 hari lalu", content = "Tempatnya sangat bersih dan nyaman."),
+                Review(id = "2", placeId = "place_jodipan", userId = "other2", authorName = "Siti", rating = 4.5, date = "3 hari lalu", content = "Pemandangan bagus.")
             )
         )
 
@@ -92,21 +102,38 @@ class ReviewsViewModelTest {
 
         override fun getAllReviews(): Flow<List<Review>> = flow
 
+        override fun getReviewsByUser(userId: String): Flow<List<Review>> =
+            flow.map { list -> list.filter { it.userId == userId } }
+
         override fun getReviewMetricsForPlace(placeId: String): Flow<ReviewMetrics> =
             getReviewsForPlace(placeId).map { list ->
-                val avg = if (list.isEmpty()) 0.0 else list.map { it.rating }.average()
-                ReviewMetrics(avg, list.size, avg, avg, avg, avg, avg, avg)
+                ReviewMetrics.fromReviews(list)
             }
 
         override suspend fun submitReview(review: Review): Result<Review> {
             flow.value = listOf(review) + flow.value
             return Result.success(review)
         }
+
+        override suspend fun updateReview(reviewId: String, rating: Double, content: String): Result<Review> {
+            var updated: Review? = null
+            flow.value = flow.value.map { existing ->
+                if (existing.id == reviewId) {
+                    existing.copy(rating = rating, content = content).also { updated = it }
+                } else existing
+            }
+            return updated?.let { Result.success(it) } ?: Result.failure(NoSuchElementException())
+        }
+
+        override suspend fun deleteReview(reviewId: String): Result<Unit> {
+            flow.value = flow.value.filterNot { it.id == reviewId }
+            return Result.success(Unit)
+        }
     }
 
     private class FakeProfileRepository : ProfileRepository {
         private val user = User(id = "u1", fullName = "Arvian Diva", email = "arvian@jelajahkota.id")
-        override fun getProfile(): Flow<User> = flowOf(user)
+        override fun getProfile(): Flow<User?> = flowOf(user)
         override suspend fun updateProfile(
             fullName: String,
             phone: String,

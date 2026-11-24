@@ -14,20 +14,19 @@ import kotlinx.coroutines.flow.map
 class PlacesRepositoryImpl : PlacesRepository {
 
     private val cities = listOf(
-        CityDestination(id = "malang", name = "Malang", imageResId = R.drawable.img_destination_kayutangan),
+        CityDestination(id = "malang", name = "Kota Malang", imageResId = R.drawable.img_destination_kayutangan),
+        CityDestination(id = "batu", name = "Kota Batu", imageResId = R.drawable.img_destination_night_view),
+        CityDestination(id = "kab_malang", name = "Kab. Malang", imageResId = R.drawable.img_destination_bromo),
         CityDestination(id = "jogja", name = "Yogyakarta", imageResId = R.drawable.img_city_yogyakarta),
-        CityDestination(id = "semarang", name = "Semarang", imageResId = R.drawable.img_place_kota_lama),
-        CityDestination(id = "jkt", name = "Jakarta", imageResId = R.drawable.img_city_jakarta),
-        CityDestination(id = "solo", name = "Solo", imageResId = R.drawable.img_city_solo),
-        CityDestination(id = "bdg", name = "Bandung", imageResId = R.drawable.img_city_bandung),
-        CityDestination(id = "sby", name = "Surabaya", imageResId = R.drawable.img_city_surabaya)
+        CityDestination(id = "semarang", name = "Semarang", imageResId = R.drawable.img_place_kota_lama)
     )
 
     private val categories = listOf(
         CategoryItem(id = "cat_city", name = "Wisata Kota", iconResId = R.drawable.img_category_beach),
         CategoryItem(id = "cat_heritage", name = "Budaya & Sejarah", iconResId = R.drawable.img_destination_cafe),
         CategoryItem(id = "cat_mountain", name = "Pegunungan", iconResId = R.drawable.img_category_mountain),
-        CategoryItem(id = "cat_nature", name = "Wisata Alam", iconResId = R.drawable.img_destination_waterfall)
+        CategoryItem(id = "cat_nature", name = "Wisata Alam", iconResId = R.drawable.img_destination_waterfall),
+        CategoryItem(id = "cat_family", name = "Rekreasi Keluarga", iconResId = R.drawable.img_destination_photo)
     )
 
     private val allPlaces = MutableStateFlow(
@@ -36,9 +35,9 @@ class PlacesRepositoryImpl : PlacesRepository {
                 id = "place_jodipan",
                 name = "Kampung Warna-Warni Jodipan",
                 location = "Jl. Juanda, Jodipan, Kec. Blimbing, Kota Malang",
-                city = "Malang",
-                rating = 4.7,
-                reviewCount = 2120,
+                city = "Kota Malang",
+                rating = 4.8,
+                reviewCount = 2,
                 imageResId = R.drawable.img_destination_jodipan,
                 galleryImageResIds = listOf(
                     R.drawable.img_destination_jodipan,
@@ -47,10 +46,14 @@ class PlacesRepositoryImpl : PlacesRepository {
                 ),
                 description = "Permukiman tepi Sungai Brantas yang disulap menjadi kanvas mural raksasa beraneka warna dengan jembatan kaca ikonik, lorong payung, dan ratusan spot foto kreatif karya mahasiswa dan seniman lokal.",
                 duration = "1-2 Jam",
+                minDurationMinutes = 60,
+                maxDurationMinutes = 120,
                 ticketPrice = "Rp 5.000 / orang",
                 ticketPriceAmount = 5_000,
                 openingHours = "07.00 - 18.00 WIB",
                 operationalDays = "Setiap Hari (Senin - Minggu)",
+                latitude = -7.983010,
+                longitude = 112.637510,
                 isPopular = true,
                 category = "Wisata Kota"
             ),
@@ -58,9 +61,9 @@ class PlacesRepositoryImpl : PlacesRepository {
                 id = "place_kayutangan",
                 name = "Kayutangan Heritage",
                 location = "Jl. Jenderal Basuki Rahmat, Klojen, Kota Malang",
-                city = "Malang",
+                city = "Kota Malang",
                 rating = 4.8,
-                reviewCount = 1890,
+                reviewCount = 1,
                 imageResId = R.drawable.img_destination_kayutangan,
                 galleryImageResIds = listOf(
                     R.drawable.img_destination_kayutangan,
@@ -69,20 +72,100 @@ class PlacesRepositoryImpl : PlacesRepository {
                 ),
                 description = "Kawasan cagar budaya Kota Malang dengan deretan bangunan bersejarah peninggalan era Hindia Belanda, kafe vintage estetik, jalur pedestrian bergaya Eropa, dan pertunjukan musik jalanan akhir pekan.",
                 duration = "2-3 Jam",
+                minDurationMinutes = 120,
+                maxDurationMinutes = 180,
                 ticketPrice = "Gratis",
                 ticketPriceAmount = 0,
                 openingHours = "24 Jam (Kafe: 08.00 - 23.00 WIB)",
                 operationalDays = "Setiap Hari (Senin - Minggu)",
+                latitude = -7.977810,
+                longitude = 112.630510,
                 isPopular = true,
                 category = "Budaya & Sejarah"
             ),
             Place(
+                id = "place_alun_tugu",
+                name = "Alun-Alun Tugu Malang",
+                location = "Jl. Tugu, Kiduldalem, Kec. Klojen, Kota Malang",
+                city = "Kota Malang",
+                rating = 4.6,
+                reviewCount = 1,
+                imageResId = R.drawable.img_destination_alun_tugu,
+                galleryImageResIds = listOf(
+                    R.drawable.img_destination_alun_tugu,
+                    R.drawable.img_destination_night_view
+                ),
+                description = "Taman lingkar terbuka hijau pusat pemerintahan Kota Malang yang dikelilingi kolam teratai indah, tugu kemerdekaan bersejarah, dan air mancur menari dengan tata cahaya warna-warni di malam hari.",
+                duration = "1-2 Jam",
+                minDurationMinutes = 60,
+                maxDurationMinutes = 120,
+                ticketPrice = "Gratis",
+                ticketPriceAmount = 0,
+                openingHours = "24 Jam",
+                operationalDays = "Setiap Hari (Senin - Minggu)",
+                latitude = -7.977140,
+                longitude = 112.634010,
+                isPopular = false,
+                category = "Wisata Kota"
+            ),
+            Place(
+                id = "place_museum_angkut",
+                name = "Museum Angkut Batu",
+                location = "Jl. Terusan Sultan Agung No.2, Ngaglik, Kota Batu",
+                city = "Kota Batu",
+                rating = 4.8,
+                reviewCount = 1,
+                imageResId = R.drawable.img_destination_photo,
+                galleryImageResIds = listOf(
+                    R.drawable.img_destination_photo,
+                    R.drawable.img_destination_night_view,
+                    R.drawable.img_destination_cafe
+                ),
+                description = "Museum transportasi terbesar di Asia Tenggara yang memamerkan ratusan koleksi kendaraan antik dan modern lintas zaman dengan zona foto bertema Eropa, Hollywood, hingga Pasar Apung Nusantara.",
+                duration = "2-4 Jam",
+                minDurationMinutes = 120,
+                maxDurationMinutes = 240,
+                ticketPrice = "Rp 100.000 / orang",
+                ticketPriceAmount = 100_000,
+                openingHours = "12.00 - 20.00 WIB",
+                operationalDays = "Setiap Hari (Senin - Minggu)",
+                latitude = -7.878950,
+                longitude = 112.520020,
+                isPopular = true,
+                category = "Rekreasi Keluarga"
+            ),
+            Place(
+                id = "place_alun_batu",
+                name = "Alun-Alun Kota Wisata Batu",
+                location = "Jl. Diponegoro, Sisir, Kec. Batu, Kota Batu",
+                city = "Kota Batu",
+                rating = 4.7,
+                reviewCount = 1,
+                imageResId = R.drawable.img_destination_night_view,
+                galleryImageResIds = listOf(
+                    R.drawable.img_destination_night_view,
+                    R.drawable.img_destination_culinary
+                ),
+                description = "Ruang publik ikonik berhawa sejuk di pusat Kota Batu dengan wahana Bianglala raksasa, taman bermain keluarga, air mancur interaktif, serta kuliner legendaris Pos Ketan Legenda.",
+                duration = "1-2 Jam",
+                minDurationMinutes = 60,
+                maxDurationMinutes = 120,
+                ticketPrice = "Gratis (Bianglala Rp 5.000)",
+                ticketPriceAmount = 0,
+                openingHours = "24 Jam",
+                operationalDays = "Setiap Hari (Senin - Minggu)",
+                latitude = -7.871180,
+                longitude = 112.526920,
+                isPopular = false,
+                category = "Rekreasi Keluarga"
+            ),
+            Place(
                 id = "place_bromo",
                 name = "Gunung Bromo & Lautan Pasir",
-                location = "Taman Nasional Bromo Tengger Semeru, Jawa Timur",
-                city = "Malang",
-                rating = 4.9,
-                reviewCount = 5600,
+                location = "Taman Nasional Bromo Tengger Semeru, Kab. Malang",
+                city = "Kab. Malang",
+                rating = 5.0,
+                reviewCount = 1,
                 imageResId = R.drawable.img_destination_bromo,
                 galleryImageResIds = listOf(
                     R.drawable.img_destination_bromo,
@@ -91,41 +174,24 @@ class PlacesRepositoryImpl : PlacesRepository {
                 ),
                 description = "Salah satu kaldera terindah di dunia dengan pemandangan magis matahari terbit dari Bukit Penanjakan, lautan pasir berbisik, Pura Luhur Poten, kawah belerang aktif, dan padang savana Bukit Teletubbies.",
                 duration = "4-6 Jam",
+                minDurationMinutes = 240,
+                maxDurationMinutes = 360,
                 ticketPrice = "Rp 29.000 (Domestik) / Rp 320.000 (Mancanegara)",
                 ticketPriceAmount = 29_000,
                 openingHours = "00.00 - 18.00 WIB (Sunrise Tour)",
                 operationalDays = "Setiap Hari (Senin - Minggu)",
+                latitude = -7.942490,
+                longitude = 112.953010,
                 isPopular = true,
                 category = "Pegunungan"
             ),
             Place(
-                id = "place_alun_tugu",
-                name = "Alun-Alun Tugu Malang",
-                location = "Klojen, Kota Malang, Jawa Timur",
-                city = "Malang",
-                rating = 4.6,
-                reviewCount = 1430,
-                imageResId = R.drawable.img_destination_alun_tugu,
-                galleryImageResIds = listOf(
-                    R.drawable.img_destination_alun_tugu,
-                    R.drawable.img_destination_night_view
-                ),
-                description = "Taman lingkar terbuka hijau pusat pemerintahan Kota Malang yang dikelilingi kolam teratai indah, tugu kemerdekaan bersejarah, dan air mancur menari dengan tata cahaya warna-warni di malam hari.",
-                duration = "1-2 Jam",
-                ticketPrice = "Gratis",
-                ticketPriceAmount = 0,
-                openingHours = "24 Jam",
-                operationalDays = "Setiap Hari (Senin - Minggu)",
-                isPopular = false,
-                category = "Wisata Kota"
-            ),
-            Place(
                 id = "place_waterfall",
-                name = "Coban Rondo & Labirin",
+                name = "Coban Rondo & Taman Labirin",
                 location = "Pandesari, Kec. Pujon, Kabupaten Malang",
-                city = "Malang",
-                rating = 4.6,
-                reviewCount = 1950,
+                city = "Kab. Malang",
+                rating = 4.7,
+                reviewCount = 1,
                 imageResId = R.drawable.img_destination_waterfall,
                 galleryImageResIds = listOf(
                     R.drawable.img_destination_waterfall,
@@ -133,11 +199,15 @@ class PlacesRepositoryImpl : PlacesRepository {
                 ),
                 description = "Air terjun alami dengan ketinggian 84 meter di lereng Gunung Panderman yang sejuk, dilengkapi taman labirin tanaman hijau, wahana outbound, perkemahan pinus, dan udara pegunungan segar.",
                 duration = "2-3 Jam",
+                minDurationMinutes = 120,
+                maxDurationMinutes = 180,
                 ticketPrice = "Rp 35.000 / orang",
                 ticketPriceAmount = 35_000,
                 openingHours = "08.00 - 17.00 WIB",
                 operationalDays = "Setiap Hari (Senin - Minggu)",
-                isPopular = false,
+                latitude = -7.884910,
+                longitude = 112.477380,
+                isPopular = true,
                 category = "Wisata Alam"
             ),
             Place(
@@ -145,8 +215,8 @@ class PlacesRepositoryImpl : PlacesRepository {
                 name = "Malioboro",
                 location = "Sosromenduran, Gedong Tengen, Kota Yogyakarta",
                 city = "Yogyakarta",
-                rating = 4.8,
-                reviewCount = 3450,
+                rating = 4.9,
+                reviewCount = 1,
                 imageResId = R.drawable.img_place_malioboro,
                 galleryImageResIds = listOf(
                     R.drawable.img_place_malioboro,
@@ -155,10 +225,14 @@ class PlacesRepositoryImpl : PlacesRepository {
                 ),
                 description = "Kawasan jalan ikonik di jantung kota Yogyakarta dengan pedestrian rindang, deretan seniman jalanan, pertokoan khas batik, kuliner gudeg, dan suasana malam heritage tempo dulu yang memikat jutaan pelancong.",
                 duration = "2-3 Jam",
+                minDurationMinutes = 120,
+                maxDurationMinutes = 180,
                 ticketPrice = "Gratis",
                 ticketPriceAmount = 0,
                 openingHours = "24 Jam (Setiap Hari)",
                 operationalDays = "Setiap Hari (Senin - Minggu)",
+                latitude = -7.792580,
+                longitude = 110.365840,
                 isPopular = true,
                 category = "Wisata Kota"
             ),
@@ -168,7 +242,7 @@ class PlacesRepositoryImpl : PlacesRepository {
                 location = "Tanjung Mas, Kec. Semarang Utara, Kota Semarang",
                 city = "Semarang",
                 rating = 4.7,
-                reviewCount = 2800,
+                reviewCount = 1,
                 imageResId = R.drawable.img_place_kota_lama,
                 galleryImageResIds = listOf(
                     R.drawable.img_place_kota_lama,
@@ -176,10 +250,14 @@ class PlacesRepositoryImpl : PlacesRepository {
                 ),
                 description = "Little Netherland Indonesia seluas 31 hektare dengan lebih dari 50 gedung kuno megah yang telah direstorasi, Gereja Blenduk beratap kubah perunggu, pasar seni barang antik, dan taman srigunting.",
                 duration = "2-3 Jam",
+                minDurationMinutes = 120,
+                maxDurationMinutes = 180,
                 ticketPrice = "Gratis",
                 ticketPriceAmount = 0,
                 openingHours = "08.00 - 22.00 WIB",
                 operationalDays = "Setiap Hari (Senin - Minggu)",
+                latitude = -6.968250,
+                longitude = 110.427850,
                 isPopular = true,
                 category = "Budaya & Sejarah"
             )
@@ -199,6 +277,12 @@ class PlacesRepositoryImpl : PlacesRepository {
     override fun getPlaceById(id: String): Flow<Place?> = allPlaces.map { list ->
         list.find { it.id == id }
     }
+
+    override fun getCachedCityDestinations(): List<CityDestination> = cities
+
+    override fun getCachedCategories(): List<CategoryItem> = categories
+
+    override fun getCachedPlaces(): List<Place> = allPlaces.value
 
     override fun searchPlaces(
         query: String,

@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,13 +41,9 @@ import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaOutlinedBut
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaPasswordTextField
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaPrimaryButton
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaTopAppBar
-import com.arvian.jelajahkota.core.designsystem.theme.BrandBluePrimary
-import com.arvian.jelajahkota.core.designsystem.theme.DarkText
-import com.arvian.jelajahkota.core.designsystem.theme.ErrorRed
+import com.arvian.jelajahkota.core.designsystem.theme.JelajahKotaTheme
 import com.arvian.jelajahkota.core.designsystem.theme.Lato
-import com.arvian.jelajahkota.core.designsystem.theme.SubtitleText
 import com.arvian.jelajahkota.core.designsystem.theme.SuccessGreen
-import com.arvian.jelajahkota.core.designsystem.theme.White
 
 @Composable
 fun ResetPasswordRoute(
@@ -83,10 +80,12 @@ fun ResetPasswordScreen(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(White)
+            .background(colorScheme.background)
     ) {
         JelajahKotaTopAppBar(
             onNavigateBack = onNavigateBack
@@ -107,23 +106,27 @@ fun ResetPasswordScreen(
                 fontFamily = Lato,
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp,
-                color = DarkText
+                color = colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 ValidationItem(
-                    text = "Kata sandi harus terdiri dari setidaknya 8 karakter.",
+                    text = "Minimal 8 karakter.",
                     isSatisfied = uiState.validation.hasMinLength
                 )
                 ValidationItem(
-                    text = "Kata sandi harus mengandung huruf kapital dan huruf kecil.",
+                    text = "Mengandung huruf kapital dan huruf kecil.",
                     isSatisfied = uiState.validation.hasUpperAndLower
                 )
                 ValidationItem(
-                    text = "Kata sandi harus mengandung angka atau karakter khusus.",
+                    text = "Mengandung angka.",
                     isSatisfied = uiState.validation.hasNumber
+                )
+                ValidationItem(
+                    text = "Mengandung simbol khusus (!@#\$%...).",
+                    isSatisfied = uiState.validation.hasSymbol
                 )
                 if (uiState.confirmPassword.isNotEmpty()) {
                     ValidationItem(
@@ -169,7 +172,7 @@ fun ResetPasswordScreen(
                     fontFamily = Lato,
                     fontWeight = FontWeight.Normal,
                     fontSize = 12.sp,
-                    color = ErrorRed
+                    color = colorScheme.error
                 )
             }
 
@@ -182,7 +185,7 @@ fun ResetPasswordScreen(
                         .height(48.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = BrandBluePrimary)
+                    CircularProgressIndicator(color = colorScheme.primary)
                 }
             } else {
                 JelajahKotaPrimaryButton(
@@ -207,6 +210,8 @@ private fun ValidationItem(
     text: String,
     isSatisfied: Boolean
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
@@ -214,7 +219,7 @@ private fun ValidationItem(
         Icon(
             imageVector = if (isSatisfied) Icons.Default.CheckCircle else Icons.Outlined.Circle,
             contentDescription = null,
-            tint = if (isSatisfied) SuccessGreen else SubtitleText.copy(alpha = 0.5f),
+            tint = if (isSatisfied) SuccessGreen else colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             modifier = Modifier.size(16.dp)
         )
         Spacer(modifier = Modifier.width(8.dp))
@@ -223,7 +228,7 @@ private fun ValidationItem(
             fontFamily = Lato,
             fontWeight = FontWeight.Normal,
             fontSize = 13.sp,
-            color = if (isSatisfied) SuccessGreen else SubtitleText
+            color = if (isSatisfied) SuccessGreen else colorScheme.onSurfaceVariant
         )
     }
 }
@@ -231,11 +236,13 @@ private fun ValidationItem(
 @Preview(showBackground = true)
 @Composable
 private fun ResetPasswordScreenPreview() {
-    ResetPasswordScreen(
-        uiState = ResetPasswordUiState(newPassword = "Pass123!"),
-        onNewPasswordChange = {},
-        onConfirmPasswordChange = {},
-        onSubmitClick = {},
-        onNavigateBack = {}
-    )
+    JelajahKotaTheme {
+        ResetPasswordScreen(
+            uiState = ResetPasswordUiState(newPassword = "Pass123!"),
+            onNewPasswordChange = {},
+            onConfirmPasswordChange = {},
+            onSubmitClick = {},
+            onNavigateBack = {}
+        )
+    }
 }

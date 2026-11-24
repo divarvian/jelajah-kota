@@ -23,13 +23,13 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,15 +38,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaPrimaryButton
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaTopAppBar
-import com.arvian.jelajahkota.core.designsystem.theme.BorderColor
-import com.arvian.jelajahkota.core.designsystem.theme.BrandBlueContainer
-import com.arvian.jelajahkota.core.designsystem.theme.BrandBluePrimary
-import com.arvian.jelajahkota.core.designsystem.theme.DarkText
+import com.arvian.jelajahkota.core.designsystem.theme.JelajahKotaTheme
 import com.arvian.jelajahkota.core.designsystem.theme.JosefinSans
 import com.arvian.jelajahkota.core.designsystem.theme.Lato
-import com.arvian.jelajahkota.core.designsystem.theme.SubtitleText
-import com.arvian.jelajahkota.core.designsystem.theme.SurfaceGray
-import com.arvian.jelajahkota.core.designsystem.theme.White
 import java.time.LocalDate
 import kotlin.math.ceil
 
@@ -85,17 +79,17 @@ fun DatePickerScreen(
     onConfirmClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     val displayedMonth = uiState.displayedMonth
     val firstDayOfMonth = displayedMonth.atDay(1)
     val daysInMonth = displayedMonth.lengthOfMonth()
-    // Monday = 0 .. Sunday = 6
     val offset = firstDayOfMonth.dayOfWeek.value - 1
     val totalRows = ceil((offset + daysInMonth) / 7.0).toInt()
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(White)
+            .background(colorScheme.background)
     ) {
         JelajahKotaTopAppBar(
             title = "Pilih Tanggal",
@@ -111,7 +105,6 @@ fun DatePickerScreen(
         ) {
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Month Selector Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -122,7 +115,7 @@ fun DatePickerScreen(
                     fontFamily = Lato,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
-                    color = DarkText
+                    color = colorScheme.onBackground
                 )
 
                 Row {
@@ -134,7 +127,7 @@ fun DatePickerScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Bulan Sebelumnya",
-                            tint = if (uiState.canNavigatePreviousMonth) DarkText else BorderColor,
+                            tint = if (uiState.canNavigatePreviousMonth) colorScheme.onBackground else colorScheme.outlineVariant,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -145,7 +138,7 @@ fun DatePickerScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription = "Bulan Berikutnya",
-                            tint = DarkText,
+                            tint = colorScheme.onBackground,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -154,7 +147,6 @@ fun DatePickerScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Day of Week Headers
             val dayHeaders = listOf("Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min")
             Row(modifier = Modifier.fillMaxWidth()) {
                 dayHeaders.forEach { header ->
@@ -164,7 +156,7 @@ fun DatePickerScreen(
                         fontFamily = Lato,
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp,
-                        color = if (isWeekend) Color(0xFFFF383C) else DarkText,
+                        color = if (isWeekend) colorScheme.error else colorScheme.onBackground,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.weight(1f)
                     )
@@ -173,7 +165,6 @@ fun DatePickerScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Dynamic Calendar Grid (5 or 6 rows depending on month)
             for (row in 0 until totalRows) {
                 Row(
                     modifier = Modifier
@@ -198,14 +189,14 @@ fun DatePickerScreen(
                                     .weight(1f)
                                     .height(42.dp)
                                     .then(
-                                        if (inRange) Modifier.background(BrandBlueContainer)
+                                        if (inRange) Modifier.background(colorScheme.primaryContainer)
                                         else Modifier
                                     )
                                     .then(
                                         if (isBoundary) {
                                             Modifier
                                                 .clip(CircleShape)
-                                                .background(BrandBluePrimary)
+                                                .background(colorScheme.primary)
                                         } else {
                                             Modifier
                                         }
@@ -219,11 +210,11 @@ fun DatePickerScreen(
                                     fontWeight = if (isBoundary || inRange) FontWeight.Bold else FontWeight.Normal,
                                     fontSize = 15.sp,
                                     color = when {
-                                        isPast -> BorderColor
-                                        isBoundary -> White
-                                        inRange -> BrandBluePrimary
-                                        col >= 5 -> Color(0xFFFF383C)
-                                        else -> DarkText
+                                        isPast -> colorScheme.outlineVariant
+                                        isBoundary -> colorScheme.onPrimary
+                                        inRange -> colorScheme.onPrimaryContainer
+                                        col >= 5 -> colorScheme.error
+                                        else -> colorScheme.onBackground
                                     }
                                 )
                             }
@@ -236,13 +227,12 @@ fun DatePickerScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Selection Summary Card
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(20.dp))
-                    .border(1.dp, BrandBluePrimary, RoundedCornerShape(20.dp))
-                    .background(SurfaceGray)
+                    .border(1.dp, colorScheme.primary, RoundedCornerShape(20.dp))
+                    .background(colorScheme.surfaceVariant)
                     .padding(20.dp)
             ) {
                 Column {
@@ -251,7 +241,7 @@ fun DatePickerScreen(
                         fontFamily = Lato,
                         fontWeight = FontWeight.Normal,
                         fontSize = 13.sp,
-                        color = SubtitleText
+                        color = colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -259,14 +249,14 @@ fun DatePickerScreen(
                         fontFamily = JosefinSans,
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
-                        color = BrandBluePrimary
+                        color = colorScheme.primary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Ketuk tanggal mulai lalu ketuk tanggal selesai untuk memilih rentang.",
                         fontFamily = Lato,
                         fontSize = 11.sp,
-                        color = SubtitleText
+                        color = colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -286,12 +276,14 @@ fun DatePickerScreen(
 @Preview(showBackground = true)
 @Composable
 private fun DatePickerScreenPreview() {
-    DatePickerScreen(
-        uiState = PlansUiState(),
-        onDateSelected = {},
-        onPreviousMonth = {},
-        onNextMonth = {},
-        onNavigateBack = {},
-        onConfirmClick = {}
-    )
+    JelajahKotaTheme {
+        DatePickerScreen(
+            uiState = PlansUiState(),
+            onDateSelected = {},
+            onPreviousMonth = {},
+            onNextMonth = {},
+            onNavigateBack = {},
+            onConfirmClick = {}
+        )
+    }
 }

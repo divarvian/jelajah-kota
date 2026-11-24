@@ -1,6 +1,5 @@
 package com.arvian.jelajahkota.feature.auth
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,7 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -28,10 +26,10 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,25 +51,20 @@ import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaPasswordTex
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaPrimaryButton
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaTextField
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaTopAppBar
-import com.arvian.jelajahkota.core.designsystem.theme.BorderColor
-import com.arvian.jelajahkota.core.designsystem.theme.BrandBluePrimary
 import com.arvian.jelajahkota.core.designsystem.theme.BrandOrangeAccent
-import com.arvian.jelajahkota.core.designsystem.theme.DarkText
-import com.arvian.jelajahkota.core.designsystem.theme.ErrorRed
-import com.arvian.jelajahkota.core.designsystem.theme.GoogleButtonBorder
+import com.arvian.jelajahkota.core.designsystem.theme.JelajahKotaTheme
 import com.arvian.jelajahkota.core.designsystem.theme.JosefinSans
 import com.arvian.jelajahkota.core.designsystem.theme.Lato
-import com.arvian.jelajahkota.core.designsystem.theme.SubtitleText
-import com.arvian.jelajahkota.core.designsystem.theme.White
 
 @Composable
 fun SignUpRoute(
     viewModel: SignUpViewModel,
+    canNavigateBack: Boolean,
     onNavigateBack: () -> Unit,
     onNavigateToSignIn: () -> Unit,
     onSignUpSuccess: () -> Unit,
     modifier: Modifier = Modifier,
-    onGoogleSignUpClick: () -> Unit = {}
+    onContinueAsGuest: (() -> Unit)? = null
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -84,15 +77,16 @@ fun SignUpRoute(
 
     SignUpScreen(
         uiState = uiState,
+        canNavigateBack = canNavigateBack,
         onFullNameChange = viewModel::onFullNameChange,
         onEmailChange = viewModel::onEmailChange,
         onPasswordChange = viewModel::onPasswordChange,
         onConfirmPasswordChange = viewModel::onConfirmPasswordChange,
         onAgreeToTermsChange = viewModel::onAgreeToTermsChange,
         onSignUpClick = viewModel::signUp,
-        onGoogleSignUpClick = onGoogleSignUpClick,
         onNavigateBack = onNavigateBack,
         onNavigateToSignIn = onNavigateToSignIn,
+        onContinueAsGuest = onContinueAsGuest,
         modifier = modifier
     )
 }
@@ -109,15 +103,18 @@ fun SignUpScreen(
     onNavigateBack: () -> Unit,
     onNavigateToSignIn: () -> Unit,
     modifier: Modifier = Modifier,
-    onGoogleSignUpClick: () -> Unit = {}
+    canNavigateBack: Boolean = false,
+    onContinueAsGuest: (() -> Unit)? = null
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(White)
+            .background(colorScheme.background)
     ) {
         JelajahKotaTopAppBar(
-            onNavigateBack = onNavigateBack
+            onNavigateBack = if (canNavigateBack) onNavigateBack else null
         )
 
         Column(
@@ -140,7 +137,7 @@ fun SignUpScreen(
                     fontFamily = JosefinSans,
                     fontWeight = FontWeight.Bold,
                     fontSize = 28.sp,
-                    color = DarkText
+                    color = colorScheme.onBackground
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Box(
@@ -158,15 +155,15 @@ fun SignUpScreen(
                 fontFamily = Lato,
                 fontWeight = FontWeight.Bold,
                 fontSize = 24.sp,
-                color = DarkText
+                color = colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Daftar untuk mulai menjelajah!",
+                text = "Daftar untuk mulai merencanakan petualangan di Kota Malang",
                 fontFamily = Lato,
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,
-                color = SubtitleText
+                color = colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -180,8 +177,7 @@ fun SignUpScreen(
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Person,
-                        contentDescription = null,
-                        tint = BrandBluePrimary
+                        contentDescription = null
                     )
                 }
             )
@@ -200,8 +196,7 @@ fun SignUpScreen(
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Email,
-                        contentDescription = null,
-                        tint = BrandBluePrimary
+                        contentDescription = null
                     )
                 }
             )
@@ -242,7 +237,7 @@ fun SignUpScreen(
                     fontFamily = Lato,
                     fontWeight = FontWeight.Normal,
                     fontSize = 12.sp,
-                    color = ErrorRed
+                    color = colorScheme.error
                 )
             }
 
@@ -258,17 +253,17 @@ fun SignUpScreen(
                     checked = uiState.agreeToTerms,
                     onCheckedChange = onAgreeToTermsChange,
                     colors = CheckboxDefaults.colors(
-                        checkedColor = BrandBluePrimary,
-                        uncheckedColor = BorderColor
+                        checkedColor = colorScheme.primary,
+                        uncheckedColor = colorScheme.outlineVariant
                     )
                 )
                 val termsText = buildAnnotatedString {
                     append("Saya menyetujui ")
-                    withStyle(style = SpanStyle(color = BrandBluePrimary, fontWeight = FontWeight.Bold)) {
+                    withStyle(style = SpanStyle(color = colorScheme.primary, fontWeight = FontWeight.Bold)) {
                         append("Syarat Layanan")
                     }
                     append(" dan ")
-                    withStyle(style = SpanStyle(color = BrandBluePrimary, fontWeight = FontWeight.Bold)) {
+                    withStyle(style = SpanStyle(color = colorScheme.primary, fontWeight = FontWeight.Bold)) {
                         append("Kebijakan Privasi.")
                     }
                 }
@@ -277,7 +272,7 @@ fun SignUpScreen(
                     fontFamily = Lato,
                     fontWeight = FontWeight.Normal,
                     fontSize = 12.sp,
-                    color = DarkText,
+                    color = colorScheme.onBackground,
                     modifier = Modifier.padding(start = 4.dp)
                 )
             }
@@ -291,7 +286,7 @@ fun SignUpScreen(
                         .height(48.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = BrandBluePrimary)
+                    CircularProgressIndicator(color = colorScheme.primary)
                 }
             } else {
                 JelajahKotaPrimaryButton(
@@ -302,51 +297,9 @@ fun SignUpScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                HorizontalDivider(
-                    modifier = Modifier.weight(1f),
-                    color = BorderColor
-                )
-                Text(
-                    text = "  atau daftar dengan  ",
-                    fontFamily = Lato,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 14.sp,
-                    color = SubtitleText
-                )
-                HorizontalDivider(
-                    modifier = Modifier.weight(1f),
-                    color = BorderColor
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedButton(
-                onClick = onGoogleSignUpClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                shape = RoundedCornerShape(30.dp),
-                border = BorderStroke(1.dp, GoogleButtonBorder)
-            ) {
-                Text(
-                    text = "G  Daftar dengan Google",
-                    fontFamily = Lato,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
-                    color = DarkText
-                )
-            }
-
-            Spacer(modifier = Modifier.height(28.dp))
-
             val annotatedString = buildAnnotatedString {
                 append("Sudah punya akun? ")
-                withStyle(style = SpanStyle(color = BrandBluePrimary, fontWeight = FontWeight.Bold)) {
+                withStyle(style = SpanStyle(color = colorScheme.primary, fontWeight = FontWeight.Bold)) {
                     append("Masuk.")
                 }
             }
@@ -355,13 +308,29 @@ fun SignUpScreen(
                 text = annotatedString,
                 fontFamily = Lato,
                 fontSize = 14.sp,
-                color = DarkText,
+                color = colorScheme.onBackground,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onNavigateToSignIn() }
                     .padding(vertical = 8.dp)
             )
+
+            if (!canNavigateBack && onContinueAsGuest != null) {
+                Spacer(modifier = Modifier.height(6.dp))
+                TextButton(
+                    onClick = onContinueAsGuest,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Lanjutkan sebagai Tamu",
+                        fontFamily = Lato,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 14.sp,
+                        color = colorScheme.onSurfaceVariant
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
         }
@@ -371,18 +340,21 @@ fun SignUpScreen(
 @Preview(showBackground = true)
 @Composable
 private fun SignUpScreenPreview() {
-    SignUpScreen(
-        uiState = SignUpUiState(
-            fullName = "Habib Ahmad",
-            email = "habib@jelajahkota.id"
-        ),
-        onFullNameChange = {},
-        onEmailChange = {},
-        onPasswordChange = {},
-        onConfirmPasswordChange = {},
-        onAgreeToTermsChange = {},
-        onSignUpClick = {},
-        onNavigateBack = {},
-        onNavigateToSignIn = {}
-    )
+    JelajahKotaTheme {
+        SignUpScreen(
+            uiState = SignUpUiState(
+                fullName = "Habib Ahmad",
+                email = "habib@jelajahkota.id"
+            ),
+            onFullNameChange = {},
+            onEmailChange = {},
+            onPasswordChange = {},
+            onConfirmPasswordChange = {},
+            onAgreeToTermsChange = {},
+            onSignUpClick = {},
+            onNavigateBack = {},
+            onNavigateToSignIn = {},
+            onContinueAsGuest = {}
+        )
+    }
 }

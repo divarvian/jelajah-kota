@@ -5,10 +5,12 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,20 +29,16 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.arvian.jelajahkota.core.designsystem.theme.BorderColor
-import com.arvian.jelajahkota.core.designsystem.theme.BrandBluePrimary
-import com.arvian.jelajahkota.core.designsystem.theme.DarkText
 import com.arvian.jelajahkota.core.designsystem.theme.JosefinSans
-import com.arvian.jelajahkota.core.designsystem.theme.SurfaceGray
-import com.arvian.jelajahkota.core.designsystem.theme.White
 
 @Composable
 fun JelajahKotaOtpInput(
     otpValues: List<String>,
     onOtpChange: (Int, String) -> Unit,
     modifier: Modifier = Modifier,
-    length: Int = 4
+    length: Int = 6
 ) {
+    val colorScheme = MaterialTheme.colorScheme
     val focusRequesters = remember(length) { List(length) { FocusRequester() } }
 
     LaunchedEffect(Unit) {
@@ -50,8 +48,8 @@ fun JelajahKotaOtpInput(
     }
 
     Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(if (length >= 6) 8.dp else 14.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically
     ) {
         for (i in 0 until length) {
@@ -78,7 +76,6 @@ fun JelajahKotaOtpInput(
                             }
                         }
                         else -> {
-                            // Handle clipboard paste across boxes starting at index i
                             digits.take(length - i).forEachIndexed { offset, digit ->
                                 onOtpChange(i + offset, digit.toString())
                             }
@@ -88,7 +85,8 @@ fun JelajahKotaOtpInput(
                     }
                 },
                 modifier = Modifier
-                    .size(64.dp)
+                    .weight(1f)
+                    .height(54.dp)
                     .focusRequester(focusRequesters[i])
                     .onKeyEvent { keyEvent ->
                         if (keyEvent.key == Key.Backspace && char.isEmpty() && i > 0) {
@@ -100,33 +98,37 @@ fun JelajahKotaOtpInput(
                     },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
                 singleLine = true,
-                cursorBrush = SolidColor(BrandBluePrimary),
+                cursorBrush = SolidColor(colorScheme.primary),
                 textStyle = TextStyle(
                     fontFamily = JosefinSans,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 24.sp,
-                    color = DarkText,
+                    fontSize = 22.sp,
+                    color = colorScheme.onSurface,
                     textAlign = TextAlign.Center
                 ),
                 decorationBox = { innerTextField ->
                     Box(
                         modifier = Modifier
-                            .size(64.dp)
-                            .background(if (isFilled) White else SurfaceGray, RoundedCornerShape(16.dp))
+                            .fillMaxWidth()
+                            .height(54.dp)
+                            .background(
+                                if (isFilled) colorScheme.surface else colorScheme.surfaceVariant,
+                                RoundedCornerShape(14.dp)
+                            )
                             .border(
                                 width = if (isFilled) 2.dp else 1.dp,
-                                color = if (isFilled) BrandBluePrimary else BorderColor,
-                                shape = RoundedCornerShape(16.dp)
+                                color = if (isFilled) colorScheme.primary else colorScheme.outlineVariant,
+                                shape = RoundedCornerShape(14.dp)
                             ),
                         contentAlignment = Alignment.Center
                     ) {
                         if (char.isEmpty()) {
                             Text(
-                                text = "-",
+                                text = "•",
                                 fontFamily = JosefinSans,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 20.sp,
-                                color = BorderColor
+                                fontSize = 18.sp,
+                                color = colorScheme.outlineVariant
                             )
                         }
                         innerTextField()

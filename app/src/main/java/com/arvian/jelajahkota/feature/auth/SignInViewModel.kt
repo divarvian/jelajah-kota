@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.arvian.jelajahkota.core.domain.repository.AuthRepository
+import com.arvian.jelajahkota.core.domain.repository.UserPreferencesRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -20,13 +22,31 @@ data class SignInUiState(
 )
 
 class SignInViewModel(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val preferencesRepository: UserPreferencesRepository? = null
 ) : ViewModel() {
 
     private val emailPattern = Regex("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
 
     private val _uiState = MutableStateFlow(SignInUiState())
     val uiState: StateFlow<SignInUiState> = _uiState.asStateFlow()
+
+    init {
+        preferencesRepository?.let { prefs ->
+            viewModelScope.launch {
+                val savedEmail = prefs.getRememberedEmail().firstOrNull()
+                if (!savedEmail.isNullOrBlank()) {
+                    _uiState.update { current ->
+                        if (current.email.isBlank()) {
+                            current.copy(email = savedEmail, rememberMe = true)
+                        } else {
+                            current
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     fun onEmailChange(email: String) {
         _uiState.update { it.copy(email = email, errorMessage = null) }
@@ -61,6 +81,9 @@ class SignInViewModel(
             val result = authRepository.signIn(trimmedEmail, state.password)
             result.fold(
                 onSuccess = {
+                    preferencesRepository?.setRememberedEmail(
+                        if (state.rememberMe) trimmedEmail else null
+                    )
                     _uiState.update { it.copy(isLoading = false, isSuccess = true) }
                 },
                 onFailure = { error ->
@@ -76,10 +99,13 @@ class SignInViewModel(
         _uiState.update { it.copy(isSuccess = false) }
     }
 
-    class Factory(private val authRepository: AuthRepository) : ViewModelProvider.Factory {
+    class Factory(
+        private val authRepository: AuthRepository,
+        private val preferencesRepository: UserPreferencesRepository? = null
+    ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return SignInViewModel(authRepository) as T
+            return SignInViewModel(authRepository, preferencesRepository) as T
         }
     }
 }

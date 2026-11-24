@@ -4,7 +4,7 @@ import com.arvian.jelajahkota.core.domain.model.User
 import kotlinx.coroutines.flow.Flow
 
 interface ProfileRepository {
-    fun getProfile(): Flow<User>
+    fun getProfile(): Flow<User?>
     suspend fun updateProfile(
         fullName: String,
         phone: String,
@@ -14,4 +14,6 @@ interface ProfileRepository {
         gender: String = ""
     ): Result<User>
     suspend fun updateAvatar(avatarUri: String): Result<User>
+    suspend fun uploadAvatar(bytes: ByteArray, declaredMimeType: String?): Result<User> =
+        updateAvatar("local://avatar_${System.currentTimeMillis()}.webp")
 }

@@ -42,18 +42,15 @@ class RepositoriesIntegrationTest {
     }
 
     @Test
-    fun `reviewsRepository filters by placeId and updates metrics dynamically on submit`() = runTest {
+    fun `reviewsRepository filters by placeId updates metrics and supports edit delete`() = runTest {
         val repo = ReviewsRepositoryImpl()
 
-        val jodipanBefore = repo.getReviewsForPlace("place_jodipan").first()
         val bromoBefore = repo.getReviewsForPlace("place_bromo").first()
-        assertTrue(jodipanBefore.all { it.placeId == "place_jodipan" })
-        assertTrue(bromoBefore.all { it.placeId == "place_bromo" })
-
         val result = repo.submitReview(
             Review(
                 id = "rev_new",
                 placeId = "place_bromo",
+                userId = "user_tester",
                 authorName = "Tester",
                 rating = 4.0,
                 date = "Baru saja",
@@ -67,32 +64,54 @@ class RepositoriesIntegrationTest {
         assertEquals(bromoBefore.size + 1, bromoAfter.size)
         assertEquals(bromoAfter.size, metricsAfter.totalReviews)
         assertEquals(4.5, metricsAfter.overallRating, 0.01)
+
+        val byUser = repo.getReviewsByUser("user_tester").first()
+        assertEquals(1, byUser.size)
+
+        val updated = repo.updateReview("rev_new", 5.0, "Sunrise terbaik di Jawa Timur!")
+        assertTrue(updated.isSuccess)
+        assertEquals("Sunrise terbaik di Jawa Timur!", repo.getReviewsByUser("user_tester").first().first().content)
+
+        val deleted = repo.deleteReview("rev_new")
+        assertTrue(deleted.isSuccess)
+        assertEquals(0, repo.getReviewsByUser("user_tester").first().size)
     }
 
     @Test
-    fun `authRepository and profileRepository share single UserSessionStore`() = runTest {
+    fun `authRepository and profileRepository start in Guest mode and share UserSessionStore`() = runTest {
         val sessionStore = UserSessionStore()
         val authRepo = AuthRepositoryImpl(sessionStore)
         val profileRepo = ProfileRepositoryImpl(sessionStore)
 
+        // Starts cleanly as Guest (null)
+        assertNull(authRepo.getCurrentUser().first())
+        assertNull(profileRepo.getProfile().first())
+
         val signUpResult = authRepo.signUp("Rina Wulandari", "rina@jelajahkota.id", "Secret123!")
         assertTrue(signUpResult.isSuccess)
-        assertEquals("Rina Wulandari", profileRepo.getProfile().first().fullName)
+        assertEquals("Rina Wulandari", profileRepo.getProfile().first()?.fullName)
 
         val updateResult = profileRepo.updateProfile(
             fullName = "Rina Malang",
             phone = "+62 811-2233-4455",
-            city = "Batu",
+            city = "Kota Batu",
             bio = "Suka wisata alam",
             birthDate = "12/04/1999",
             gender = "Perempuan"
         )
         assertTrue(updateResult.isSuccess)
         assertEquals("Rina Malang", authRepo.getCurrentUser().first()?.fullName)
-        assertEquals("12/04/1999", profileRepo.getProfile().first().birthDate)
+        assertEquals("+6281122334455", profileRepo.getProfile().first()?.phone)
+        assertEquals("1999-04-12", profileRepo.getProfile().first()?.birthDate)
+        assertEquals("female", profileRepo.getProfile().first()?.gender)
+
+        // 6-digit OTP validation
+        assertTrue(authRepo.verifyOtp("rina@jelajahkota.id", "1234").isFailure)
+        assertTrue(authRepo.verifyOtp("rina@jelajahkota.id", "123456").isSuccess)
 
         authRepo.signOut()
         assertNull(authRepo.getCurrentUser().first())
+        assertNull(profileRepo.getProfile().first())
     }
 
     @Test

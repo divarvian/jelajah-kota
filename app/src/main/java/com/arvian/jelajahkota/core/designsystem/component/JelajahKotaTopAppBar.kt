@@ -14,35 +14,35 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.arvian.jelajahkota.core.designsystem.theme.DarkText
+import com.arvian.jelajahkota.R
 import com.arvian.jelajahkota.core.designsystem.theme.JosefinSans
-import com.arvian.jelajahkota.core.designsystem.theme.SurfaceGray
-import com.arvian.jelajahkota.core.designsystem.theme.White
 
 /**
  * Standardized top app bar for JelajahKota with strict 56.dp height,
- * consistent 40.dp circular back button, and aligned title across all screens.
+ * consistent 40.dp circular back button, and theme-aware surface & text colors.
  */
 @Composable
 fun JelajahKotaTopAppBar(
     modifier: Modifier = Modifier,
     title: String = "",
     onNavigateBack: (() -> Unit)? = null,
-    backgroundColor: Color = White,
-    titleColor: Color = DarkText,
-    backButtonContainerColor: Color = SurfaceGray,
-    backButtonIconColor: Color = DarkText,
+    backgroundColor: Color = MaterialTheme.colorScheme.background,
+    titleColor: Color = MaterialTheme.colorScheme.onBackground,
+    backButtonContainerColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    backButtonIconColor: Color = MaterialTheme.colorScheme.onSurface,
     isTitleCentered: Boolean = true,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
@@ -65,7 +65,7 @@ fun JelajahKotaTopAppBar(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Kembali",
+                    contentDescription = stringResource(R.string.nav_back),
                     tint = backButtonIconColor,
                     modifier = Modifier.size(20.dp)
                 )

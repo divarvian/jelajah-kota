@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,12 +16,14 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
@@ -38,12 +39,9 @@ import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaOutlinedBut
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaPrimaryButton
 import com.arvian.jelajahkota.core.designsystem.component.OrangeRibbonTag
 import com.arvian.jelajahkota.core.designsystem.component.PageIndicatorBars
-import com.arvian.jelajahkota.core.designsystem.theme.DarkText
 import com.arvian.jelajahkota.core.designsystem.theme.JelajahKotaTheme
 import com.arvian.jelajahkota.core.designsystem.theme.JosefinSans
 import com.arvian.jelajahkota.core.designsystem.theme.Lato
-import com.arvian.jelajahkota.core.designsystem.theme.SubtitleText
-import com.arvian.jelajahkota.core.designsystem.theme.White
 
 data class OnboardingSlideData(
     val titlePrefix: String,
@@ -55,7 +53,6 @@ data class OnboardingSlideData(
 )
 
 val OnboardingSlides = listOf(
-    // Node 52:702 — Onboarding 1
     OnboardingSlideData(
         titlePrefix = "Jelajahi Destinasi Sudut",
         highlightedWord = "Kotamu!",
@@ -64,7 +61,6 @@ val OnboardingSlides = listOf(
         topRightDrawable = R.drawable.img_destination_alun_tugu,
         bottomWideDrawable = R.drawable.img_destination_kayutangan
     ),
-    // Node 1:5 — Onboarding 2
     OnboardingSlideData(
         titlePrefix = "Rencanakan",
         highlightedWord = "Kunjunganmu",
@@ -73,7 +69,6 @@ val OnboardingSlides = listOf(
         topRightDrawable = R.drawable.img_destination_waterfall,
         bottomWideDrawable = R.drawable.img_destination_cafe
     ),
-    // Node 1:6 — Onboarding 3
     OnboardingSlideData(
         titlePrefix = "Bagikan",
         highlightedWord = "Pengalamanmu",
@@ -84,12 +79,6 @@ val OnboardingSlides = listOf(
     )
 )
 
-/**
- * Onboarding Pager Screen implementing Figma Nodes:
- * - 52:702 (Onboarding Slide 1)
- * - 1:5 (Onboarding Slide 2)
- * - 1:6 (Onboarding Slide 3)
- */
 @Composable
 fun OnboardingScreen(
     onSkipClick: () -> Unit,
@@ -99,6 +88,7 @@ fun OnboardingScreen(
     onPageSelected: (Int) -> Unit = {}
 ) {
     val pagerState = rememberPagerState(pageCount = { OnboardingSlides.size })
+    val colorScheme = MaterialTheme.colorScheme
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { page ->
@@ -109,22 +99,22 @@ fun OnboardingScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(White)
+            .background(colorScheme.background)
             .statusBarsPadding()
             .navigationBarsPadding()
     ) {
-        // Top Bar with Skip (Lewati) Action
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp, vertical = 12.dp)
         ) {
+            val skipCd = stringResource(R.string.onboarding_skip_cd)
             Text(
-                text = "Lewati",
+                text = stringResource(R.string.onboarding_skip),
                 fontFamily = JosefinSans,
                 fontWeight = FontWeight.Medium,
                 fontSize = 16.sp,
-                color = DarkText,
+                color = colorScheme.onBackground,
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
                     .clickable(
@@ -133,48 +123,42 @@ fun OnboardingScreen(
                     )
                     .semantics {
                         role = Role.Button
-                        contentDescription = "Lewati onboarding"
+                        contentDescription = skipCd
                     }
                     .padding(8.dp)
             )
         }
 
-        // Horizontal Pager for the 3 Onboarding Slides
         HorizontalPager(
             state = pagerState,
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth()
         ) { pageIndex ->
-            val slide = OnboardingSlides[pageIndex]
-            OnboardingSlideContent(slide = slide)
+            OnboardingSlideContent(slide = OnboardingSlides[pageIndex])
         }
 
-        // Bottom Section: Indicator & Action Buttons
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 32.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 3-Bar Page Indicator reflecting active slide
             PageIndicatorBars(
                 pageCount = OnboardingSlides.size,
                 currentPage = pagerState.currentPage,
                 modifier = Modifier.padding(bottom = 20.dp)
             )
 
-            // Primary CTA: Masuk (filled blue pill)
             JelajahKotaPrimaryButton(
-                text = "Masuk",
+                text = stringResource(R.string.onboarding_sign_in),
                 onClick = onSignInClick
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Secondary CTA: Daftar Akun (outlined pill)
             JelajahKotaOutlinedButton(
-                text = "Daftar Akun",
+                text = stringResource(R.string.onboarding_sign_up),
                 onClick = onSignUpClick
             )
         }
@@ -187,6 +171,7 @@ private fun OnboardingSlideContent(
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
+    val colorScheme = MaterialTheme.colorScheme
 
     Column(
         modifier = modifier
@@ -196,7 +181,6 @@ private fun OnboardingSlideContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
-        // Upper Asymmetric 3-Image Destination Collage
         DestinationCollage(
             topLeftDrawable = slide.topLeftDrawable,
             topRightDrawable = slide.topRightDrawable,
@@ -206,7 +190,6 @@ private fun OnboardingSlideContent(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Headline with Orange Ribbon Tag
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.padding(horizontal = 24.dp)
@@ -218,7 +201,7 @@ private fun OnboardingSlideContent(
                 fontSize = 32.sp,
                 lineHeight = 38.sp,
                 textAlign = TextAlign.Center,
-                color = DarkText
+                color = colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -231,7 +214,6 @@ private fun OnboardingSlideContent(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Supporting Copy
         Text(
             text = slide.description,
             fontFamily = Lato,
@@ -239,7 +221,7 @@ private fun OnboardingSlideContent(
             fontSize = 16.sp,
             lineHeight = 24.sp,
             textAlign = TextAlign.Center,
-            color = SubtitleText,
+            color = colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 28.dp)
         )
 
@@ -247,7 +229,7 @@ private fun OnboardingSlideContent(
     }
 }
 
-@Preview(name = "Onboarding Slide 1 (52:702)", widthDp = 393, heightDp = 852, showBackground = true)
+@Preview(name = "Onboarding Slide 1", widthDp = 393, heightDp = 852, showBackground = true)
 @Composable
 private fun OnboardingSlide1Preview() {
     JelajahKotaTheme {

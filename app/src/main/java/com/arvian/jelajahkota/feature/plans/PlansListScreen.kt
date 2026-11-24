@@ -1,6 +1,5 @@
 package com.arvian.jelajahkota.feature.plans
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,12 +9,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,6 +28,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -43,26 +40,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaAsyncImage
+import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaOutlinedButton
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaPrimaryButton
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaTopAppBar
-import com.arvian.jelajahkota.core.designsystem.theme.BorderColor
-import com.arvian.jelajahkota.core.designsystem.theme.BrandBlueContainer
-import com.arvian.jelajahkota.core.designsystem.theme.BrandBluePrimary
-import com.arvian.jelajahkota.core.designsystem.theme.DarkText
-import com.arvian.jelajahkota.core.designsystem.theme.ErrorRed
+import com.arvian.jelajahkota.core.designsystem.theme.JelajahKotaTheme
 import com.arvian.jelajahkota.core.designsystem.theme.JosefinSans
 import com.arvian.jelajahkota.core.designsystem.theme.Lato
-import com.arvian.jelajahkota.core.designsystem.theme.SubtitleText
-import com.arvian.jelajahkota.core.designsystem.theme.SurfaceGray
-import com.arvian.jelajahkota.core.designsystem.theme.White
 import com.arvian.jelajahkota.core.domain.model.VisitPlan
 
 @Composable
@@ -70,7 +62,9 @@ fun PlansListRoute(
     viewModel: PlansViewModel,
     onNavigateToPlaceDetail: (String) -> Unit,
     onNavigateToExplore: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    bottomContentPadding: Dp = 0.dp,
+    onNavigateToSignIn: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -79,6 +73,8 @@ fun PlansListRoute(
         onPlaceClick = onNavigateToPlaceDetail,
         onDeletePlan = viewModel::deletePlan,
         onExploreClick = onNavigateToExplore,
+        onSignInClick = onNavigateToSignIn,
+        bottomContentPadding = bottomContentPadding,
         modifier = modifier
     )
 }
@@ -89,15 +85,17 @@ fun PlansListScreen(
     onPlaceClick: (String) -> Unit,
     onDeletePlan: (String) -> Unit,
     onExploreClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    bottomContentPadding: Dp = 0.dp,
+    onSignInClick: () -> Unit = {}
 ) {
     var planPendingDeletion by remember { mutableStateOf<VisitPlan?>(null) }
-    val bottomNavInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val colorScheme = MaterialTheme.colorScheme
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(White)
+            .background(colorScheme.background)
     ) {
         JelajahKotaTopAppBar(
             title = "Rencana Kunjungan",
@@ -109,6 +107,65 @@ fun PlansListScreen(
                 .fillMaxSize()
                 .padding(horizontal = 20.dp)
         ) {
+            if (!uiState.isLoggedIn) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(bottom = bottomContentPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(76.dp)
+                                .clip(CircleShape)
+                                .background(colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CalendarMonth,
+                                contentDescription = null,
+                                tint = colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Atur Rencana Kunjunganmu",
+                            fontFamily = JosefinSans,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = colorScheme.onBackground,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Masuk untuk menjadwalkan tanggal kunjungan, jumlah rombongan, dan catatan perjalananmu di Kota Malang.",
+                            fontFamily = Lato,
+                            fontSize = 13.sp,
+                            lineHeight = 19.sp,
+                            color = colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(22.dp))
+                        JelajahKotaPrimaryButton(
+                            text = "Masuk / Daftar",
+                            onClick = onSignInClick
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        JelajahKotaOutlinedButton(
+                            text = "Jelajahi Destinasi",
+                            onClick = onExploreClick
+                        )
+                    }
+                }
+                return
+            }
+
             Spacer(modifier = Modifier.height(10.dp))
 
             Text(
@@ -116,7 +173,7 @@ fun PlansListScreen(
                 fontFamily = Lato,
                 fontWeight = FontWeight.Normal,
                 fontSize = 13.sp,
-                color = SubtitleText
+                color = colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -128,13 +185,14 @@ fun PlansListScreen(
                         .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = BrandBluePrimary)
+                    CircularProgressIndicator(color = colorScheme.primary)
                 }
             } else if (uiState.savedPlans.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
+                        .weight(1f)
+                        .padding(bottom = bottomContentPadding),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(
@@ -145,13 +203,13 @@ fun PlansListScreen(
                             modifier = Modifier
                                 .size(80.dp)
                                 .clip(CircleShape)
-                                .background(BrandBlueContainer),
+                                .background(colorScheme.primaryContainer),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.CalendarMonth,
                                 contentDescription = null,
-                                tint = BrandBluePrimary,
+                                tint = colorScheme.onPrimaryContainer,
                                 modifier = Modifier.size(40.dp)
                             )
                         }
@@ -163,7 +221,7 @@ fun PlansListScreen(
                             fontFamily = JosefinSans,
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp,
-                            color = DarkText,
+                            color = colorScheme.onBackground,
                             textAlign = TextAlign.Center
                         )
 
@@ -173,7 +231,7 @@ fun PlansListScreen(
                             text = "Mulai jadwalkan destinasi impianmu di Kota Malang dan sekitarnya!",
                             fontFamily = Lato,
                             fontSize = 14.sp,
-                            color = SubtitleText,
+                            color = colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
                         )
 
@@ -188,7 +246,7 @@ fun PlansListScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(bottom = 84.dp + bottomNavInset),
+                    contentPadding = PaddingValues(bottom = bottomContentPadding + 16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(uiState.savedPlans, key = { it.id }) { plan ->
@@ -207,6 +265,9 @@ fun PlansListScreen(
     if (planToDelete != null) {
         AlertDialog(
             onDismissRequest = { planPendingDeletion = null },
+            containerColor = colorScheme.surface,
+            titleContentColor = colorScheme.onSurface,
+            textContentColor = colorScheme.onSurfaceVariant,
             title = {
                 Text(
                     text = "Hapus Rencana Kunjungan",
@@ -218,8 +279,7 @@ fun PlansListScreen(
                 Text(
                     text = "Yakin ingin menghapus rencana kunjungan ke ${planToDelete.placeName}?",
                     fontFamily = Lato,
-                    fontSize = 14.sp,
-                    color = SubtitleText
+                    fontSize = 14.sp
                 )
             },
             confirmButton = {
@@ -233,7 +293,7 @@ fun PlansListScreen(
                         text = "Hapus",
                         fontFamily = Lato,
                         fontWeight = FontWeight.Bold,
-                        color = ErrorRed
+                        color = colorScheme.error
                     )
                 }
             },
@@ -242,7 +302,7 @@ fun PlansListScreen(
                     Text(
                         text = "Batal",
                         fontFamily = Lato,
-                        color = DarkText
+                        color = colorScheme.onSurface
                     )
                 }
             }
@@ -257,12 +317,14 @@ private fun PlanCardItem(
     onDeleteClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .border(1.dp, BorderColor, RoundedCornerShape(20.dp))
-            .background(SurfaceGray)
+            .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(20.dp))
+            .background(colorScheme.surfaceVariant)
             .clickable(onClick = onClick)
             .padding(16.dp)
     ) {
@@ -271,8 +333,9 @@ private fun PlanCardItem(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
-                    painter = painterResource(id = plan.imageResId),
+                JelajahKotaAsyncImage(
+                    imageUrl = plan.imageUrl,
+                    fallbackResId = plan.imageResId,
                     contentDescription = plan.placeName,
                     modifier = Modifier
                         .size(84.dp)
@@ -288,7 +351,7 @@ private fun PlanCardItem(
                         fontFamily = JosefinSans,
                         fontWeight = FontWeight.Bold,
                         fontSize = 17.sp,
-                        color = DarkText,
+                        color = colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -299,7 +362,7 @@ private fun PlanCardItem(
                         Icon(
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = null,
-                            tint = SubtitleText,
+                            tint = colorScheme.onSurfaceVariant,
                             modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
@@ -307,7 +370,7 @@ private fun PlanCardItem(
                             text = plan.placeLocation,
                             fontFamily = Lato,
                             fontSize = 12.sp,
-                            color = SubtitleText,
+                            color = colorScheme.onSurfaceVariant,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -327,7 +390,7 @@ private fun PlanCardItem(
                             Icon(
                                 imageVector = Icons.Default.CalendarMonth,
                                 contentDescription = null,
-                                tint = BrandBluePrimary,
+                                tint = colorScheme.primary,
                                 modifier = Modifier.size(13.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
@@ -336,7 +399,7 @@ private fun PlanCardItem(
                                 fontFamily = Lato,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = BrandBluePrimary,
+                                color = colorScheme.primary,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -348,7 +411,7 @@ private fun PlanCardItem(
                             Icon(
                                 imageVector = Icons.Default.Group,
                                 contentDescription = null,
-                                tint = DarkText,
+                                tint = colorScheme.onSurface,
                                 modifier = Modifier.size(13.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
@@ -356,7 +419,7 @@ private fun PlanCardItem(
                                 text = "${plan.visitorCount} org",
                                 fontFamily = Lato,
                                 fontSize = 11.sp,
-                                color = DarkText
+                                color = colorScheme.onSurface
                             )
                         }
                     }
@@ -371,7 +434,7 @@ private fun PlanCardItem(
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = "Hapus rencana",
-                        tint = ErrorRed.copy(alpha = 0.8f),
+                        tint = colorScheme.error.copy(alpha = 0.85f),
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -383,7 +446,7 @@ private fun PlanCardItem(
                     text = "Catatan: ${plan.notes}",
                     fontFamily = Lato,
                     fontSize = 12.sp,
-                    color = SubtitleText,
+                    color = colorScheme.onSurfaceVariant,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -395,10 +458,12 @@ private fun PlanCardItem(
 @Preview(showBackground = true)
 @Composable
 private fun PlansListScreenPreview() {
-    PlansListScreen(
-        uiState = PlansUiState(),
-        onPlaceClick = {},
-        onDeletePlan = {},
-        onExploreClick = {}
-    )
+    JelajahKotaTheme {
+        PlansListScreen(
+            uiState = PlansUiState(),
+            onPlaceClick = {},
+            onDeletePlan = {},
+            onExploreClick = {}
+        )
+    }
 }

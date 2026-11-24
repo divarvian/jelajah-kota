@@ -1,6 +1,7 @@
 package com.arvian.jelajahkota.feature.auth
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -10,7 +11,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,12 +31,8 @@ import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaOtpInput
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaOutlinedButton
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaPrimaryButton
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaTopAppBar
-import com.arvian.jelajahkota.core.designsystem.theme.BrandBluePrimary
-import com.arvian.jelajahkota.core.designsystem.theme.DarkText
-import com.arvian.jelajahkota.core.designsystem.theme.ErrorRed
+import com.arvian.jelajahkota.core.designsystem.theme.JelajahKotaTheme
 import com.arvian.jelajahkota.core.designsystem.theme.Lato
-import com.arvian.jelajahkota.core.designsystem.theme.SubtitleText
-import com.arvian.jelajahkota.core.designsystem.theme.White
 
 @Composable
 fun OtpVerificationRoute(
@@ -69,10 +69,12 @@ fun OtpVerificationScreen(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(White)
+            .background(colorScheme.background)
     ) {
         JelajahKotaTopAppBar(
             onNavigateBack = onNavigateBack
@@ -83,6 +85,7 @@ fun OtpVerificationScreen(
                 .fillMaxSize()
                 .imePadding()
                 .navigationBarsPadding()
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp, vertical = 8.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
@@ -92,37 +95,50 @@ fun OtpVerificationScreen(
                 fontFamily = Lato,
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp,
-                color = DarkText
+                color = colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Masukkan kode OTP yang dikirim ke ${uiState.email}",
+                text = "Masukkan 6 digit kode OTP yang telah dikirim ke ${uiState.email}.",
                 fontFamily = Lato,
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
-                color = SubtitleText
+                color = colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(36.dp))
+            Spacer(modifier = Modifier.height(6.dp))
+
+            Text(
+                text = "Ganti Email",
+                fontFamily = Lato,
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp,
+                color = colorScheme.primary,
+                modifier = Modifier
+                    .clickable(onClick = onNavigateBack)
+                    .padding(vertical = 4.dp)
+            )
+
+            Spacer(modifier = Modifier.height(28.dp))
 
             JelajahKotaOtpInput(
                 otpValues = uiState.otpValues,
                 onOtpChange = onDigitChange,
-                length = 4,
+                length = OtpVerificationUiState.OTP_LENGTH,
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = uiState.timerFormatted,
+                text = if (uiState.canResend) "Anda dapat mengirim ulang kode sekarang" else "Kirim ulang dalam ${uiState.timerFormatted}",
                 fontFamily = Lato,
                 fontWeight = FontWeight.Medium,
                 fontSize = 13.sp,
-                color = if (uiState.canResend) BrandBluePrimary else SubtitleText,
+                color = if (uiState.canResend) colorScheme.primary else colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.End,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -134,7 +150,7 @@ fun OtpVerificationScreen(
                     fontFamily = Lato,
                     fontWeight = FontWeight.Normal,
                     fontSize = 12.sp,
-                    color = ErrorRed
+                    color = colorScheme.error
                 )
             }
 
@@ -147,7 +163,7 @@ fun OtpVerificationScreen(
                         .height(48.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = BrandBluePrimary)
+                    CircularProgressIndicator(color = colorScheme.primary)
                 }
             } else {
                 JelajahKotaPrimaryButton(
@@ -170,14 +186,16 @@ fun OtpVerificationScreen(
 @Preview(showBackground = true)
 @Composable
 private fun OtpVerificationScreenPreview() {
-    OtpVerificationScreen(
-        uiState = OtpVerificationUiState(
-            email = "penjelajah@jelajahkota.id",
-            otpValues = listOf("1", "2", "", "")
-        ),
-        onDigitChange = { _, _ -> },
-        onVerifyClick = {},
-        onResendClick = {},
-        onNavigateBack = {}
-    )
+    JelajahKotaTheme {
+        OtpVerificationScreen(
+            uiState = OtpVerificationUiState(
+                email = "penjelajah@jelajahkota.id",
+                otpValues = listOf("1", "2", "3", "", "", "")
+            ),
+            onDigitChange = { _, _ -> },
+            onVerifyClick = {},
+            onResendClick = {},
+            onNavigateBack = {}
+        )
+    }
 }

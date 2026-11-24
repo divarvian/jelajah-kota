@@ -6,7 +6,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
 import com.arvian.jelajahkota.di.AppContainer
-import com.arvian.jelajahkota.feature.auth.EmailSentConfirmationScreen
 import com.arvian.jelajahkota.feature.auth.ForgotPasswordRoute
 import com.arvian.jelajahkota.feature.auth.ForgotPasswordViewModel
 import com.arvian.jelajahkota.feature.auth.OtpVerificationRoute
@@ -29,27 +28,44 @@ internal fun NavGraphBuilder.authNavGraph(
 ) {
     composable<SignInDestination> {
         val signInViewModel: SignInViewModel = viewModel(
-            factory = SignInViewModel.Factory(container.authRepository)
+            factory = SignInViewModel.Factory(
+                authRepository = container.authRepository,
+                preferencesRepository = container.preferencesRepository
+            )
         )
+        val canNavigateBack = navController.canNavigateBack()
+
         SignInRoute(
             viewModel = signInViewModel,
-            onNavigateBack = { navController.popBackStack() },
+            canNavigateBack = canNavigateBack,
+            onNavigateBack = { navController.safePopBackStack() },
             onNavigateToSignUp = {
                 navController.navigate(SignUpDestination) {
                     popUpTo(SignInDestination) { inclusive = true }
                 }
             },
             onNavigateToForgotPassword = { navController.navigate(ForgotPasswordDestination) },
-            onGoogleSignInClick = {
-                showMessage("Masuk dengan Google akan tersedia setelah integrasi Supabase Auth.")
+            onContinueAsGuest = {
+                coroutineScope.launch {
+                    container.preferencesRepository.setOnboardingCompleted(true)
+                }
+                container.mainShellCoordinator.resetToHome()
+                navController.navigate(MainShellDestination) {
+                    popUpTo(0) { inclusive = true }
+                }
             },
             onSignInSuccess = {
                 coroutineScope.launch {
                     container.preferencesRepository.setOnboardingCompleted(true)
                 }
                 showMessage("Selamat datang kembali!")
-                navController.navigate(MainDestination) {
-                    popUpTo(0) { inclusive = true }
+                if (navController.canNavigateBack()) {
+                    navController.safePopBackStack()
+                } else {
+                    container.mainShellCoordinator.resetToHome()
+                    navController.navigate(MainShellDestination) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             }
         )
@@ -59,24 +75,38 @@ internal fun NavGraphBuilder.authNavGraph(
         val signUpViewModel: SignUpViewModel = viewModel(
             factory = SignUpViewModel.Factory(container.authRepository)
         )
+        val canNavigateBack = navController.canNavigateBack()
+
         SignUpRoute(
             viewModel = signUpViewModel,
-            onNavigateBack = { navController.popBackStack() },
+            canNavigateBack = canNavigateBack,
+            onNavigateBack = { navController.safePopBackStack() },
             onNavigateToSignIn = {
                 navController.navigate(SignInDestination) {
                     popUpTo(SignUpDestination) { inclusive = true }
                 }
             },
-            onGoogleSignUpClick = {
-                showMessage("Daftar dengan Google akan tersedia setelah integrasi Supabase Auth.")
+            onContinueAsGuest = {
+                coroutineScope.launch {
+                    container.preferencesRepository.setOnboardingCompleted(true)
+                }
+                container.mainShellCoordinator.resetToHome()
+                navController.navigate(MainShellDestination) {
+                    popUpTo(0) { inclusive = true }
+                }
             },
             onSignUpSuccess = {
                 coroutineScope.launch {
                     container.preferencesRepository.setOnboardingCompleted(true)
                 }
                 showMessage("Akun berhasil dibuat!")
-                navController.navigate(MainDestination) {
-                    popUpTo(0) { inclusive = true }
+                if (navController.canNavigateBack()) {
+                    navController.safePopBackStack()
+                } else {
+                    container.mainShellCoordinator.resetToHome()
+                    navController.navigate(MainShellDestination) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             }
         )
@@ -88,22 +118,10 @@ internal fun NavGraphBuilder.authNavGraph(
         )
         ForgotPasswordRoute(
             viewModel = forgotPasswordViewModel,
-            onNavigateBack = { navController.popBackStack() },
+            onNavigateBack = { navController.safePopBackStack() },
             onLinkSent = { email ->
-                navController.navigate(EmailSentDestination(email = email))
+                navController.navigate(OtpVerificationDestination(email = email))
             }
-        )
-    }
-
-    composable<EmailSentDestination> { backStackEntry ->
-        val destination: EmailSentDestination = backStackEntry.toRoute()
-        EmailSentConfirmationScreen(
-            email = destination.email,
-            onNavigateToOtp = {
-                navController.navigate(OtpVerificationDestination(email = destination.email))
-            },
-            onChangeEmail = { navController.popBackStack() },
-            onNavigateBack = { navController.popBackStack() }
         )
     }
 
@@ -114,7 +132,7 @@ internal fun NavGraphBuilder.authNavGraph(
         )
         OtpVerificationRoute(
             viewModel = otpViewModel,
-            onNavigateBack = { navController.popBackStack() },
+            onNavigateBack = { navController.safePopBackStack() },
             onVerified = {
                 navController.navigate(ResetPasswordDestination(email = destination.email))
             }
@@ -128,7 +146,7 @@ internal fun NavGraphBuilder.authNavGraph(
         )
         ResetPasswordRoute(
             viewModel = resetViewModel,
-            onNavigateBack = { navController.popBackStack() },
+            onNavigateBack = { navController.safePopBackStack() },
             onResetSuccess = {
                 navController.navigate(PasswordUpdatedDestination) {
                     popUpTo(ForgotPasswordDestination) { inclusive = true }
@@ -140,11 +158,6 @@ internal fun NavGraphBuilder.authNavGraph(
     composable<PasswordUpdatedDestination> {
         PasswordResetSuccessScreen(
             onNavigateToSignIn = {
-                navController.navigate(SignInDestination) {
-                    popUpTo(0) { inclusive = true }
-                }
-            },
-            onNavigateBack = {
                 navController.navigate(SignInDestination) {
                     popUpTo(0) { inclusive = true }
                 }

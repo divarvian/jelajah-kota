@@ -1,5 +1,8 @@
 package com.arvian.jelajahkota.feature.profile
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,67 +19,66 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.arvian.jelajahkota.R
+import com.arvian.jelajahkota.core.designsystem.component.InfoModalDialog
+import com.arvian.jelajahkota.core.designsystem.component.InfoSection
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaTopAppBar
-import com.arvian.jelajahkota.core.designsystem.theme.BorderColor
-import com.arvian.jelajahkota.core.designsystem.theme.BrandBluePrimary
-import com.arvian.jelajahkota.core.designsystem.theme.DarkText
-import com.arvian.jelajahkota.core.designsystem.theme.ErrorRed
-import com.arvian.jelajahkota.core.designsystem.theme.JosefinSans
+import com.arvian.jelajahkota.core.designsystem.theme.JelajahKotaTheme
 import com.arvian.jelajahkota.core.designsystem.theme.Lato
-import com.arvian.jelajahkota.core.designsystem.theme.SubtitleText
-import com.arvian.jelajahkota.core.designsystem.theme.SurfaceGray
-import com.arvian.jelajahkota.core.designsystem.theme.White
 
 @Composable
 fun SettingsRoute(
     viewModel: ProfileViewModel,
     modifier: Modifier = Modifier,
     onNavigateBack: () -> Unit = {},
-    onNavigateToEditProfile: () -> Unit = {},
-    onShowMessage: (String) -> Unit = {},
-    onSignedOut: () -> Unit = {},
-    isRootTab: Boolean = false
+    onShowMessage: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(uiState.signedOut) {
-        if (uiState.signedOut) {
-            viewModel.consumeSignedOut()
-            onSignedOut()
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            viewModel.toggleLocation(true)
+            onShowMessage("Akses lokasi aktif. Jarak destinasi kini ditampilkan.")
+        } else {
+            viewModel.toggleLocation(false)
+            onShowMessage("Izin lokasi tidak aktif. Menampilkan destinasi Malang Raya secara default.")
         }
     }
 
     SettingsScreen(
         uiState = uiState,
-        onToggleLocation = viewModel::toggleLocation,
+        onToggleLocation = { enable ->
+            if (enable && !viewModel.hasLocationPermission()) {
+                locationPermissionLauncher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
+            } else {
+                viewModel.toggleLocation(enable)
+            }
+        },
         onToggleDarkMode = viewModel::toggleDarkMode,
         onTogglePushNotifications = viewModel::togglePushNotifications,
         onToggleEmailNotifications = viewModel::toggleEmailNotifications,
-        onNavigateToEditProfile = onNavigateToEditProfile,
-        onShowMessage = onShowMessage,
-        onSignOutClick = viewModel::signOut,
         onNavigateBack = onNavigateBack,
-        isRootTab = isRootTab,
         modifier = modifier
     )
 }
@@ -88,24 +90,21 @@ fun SettingsScreen(
     onToggleDarkMode: (Boolean) -> Unit,
     onTogglePushNotifications: (Boolean) -> Unit,
     onToggleEmailNotifications: (Boolean) -> Unit,
-    onNavigateToEditProfile: () -> Unit,
-    onSignOutClick: () -> Unit,
     onNavigateBack: () -> Unit,
-    modifier: Modifier = Modifier,
-    onShowMessage: (String) -> Unit = {},
-    isRootTab: Boolean = false
+    modifier: Modifier = Modifier
 ) {
-    var showLogoutDialog by remember { mutableStateOf(false) }
+    var showSupportDialog by remember { mutableStateOf(false) }
+    var showTermsDialog by remember { mutableStateOf(false) }
+    val colorScheme = MaterialTheme.colorScheme
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(White)
+            .background(colorScheme.background)
     ) {
         JelajahKotaTopAppBar(
-            title = "Pengaturan",
-            onNavigateBack = if (isRootTab) null else onNavigateBack,
-            isTitleCentered = !isRootTab
+            title = stringResource(R.string.settings_title),
+            onNavigateBack = onNavigateBack
         )
 
         Column(
@@ -117,133 +116,91 @@ fun SettingsScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            SectionHeader(title = "Umum")
+            SectionHeader(title = "Tampilan & Lokasi")
             Spacer(modifier = Modifier.height(10.dp))
-            NavigationItemRow(
-                title = "Akun",
-                subtitle = uiState.user.email,
-                onClick = onNavigateToEditProfile
-            )
-            NavigationItemRow(title = "Edit Profil", onClick = onNavigateToEditProfile)
-            SwitchItemRow(
-                title = "Lokasi",
-                checked = uiState.locationEnabled,
-                onCheckedChange = onToggleLocation
-            )
             SwitchItemRow(
                 title = "Mode Gelap",
+                subtitle = "Gunakan tampilan gelap yang nyaman di malam hari",
                 checked = uiState.darkModeEnabled,
                 onCheckedChange = onToggleDarkMode
             )
+            SwitchItemRow(
+                title = "Akses Lokasi",
+                subtitle = "Bantu tampilkan destinasi terdekat di sekitar Kota Malang",
+                checked = uiState.locationEnabled,
+                onCheckedChange = onToggleLocation
+            )
 
-            Spacer(modifier = Modifier.height(24.dp))
-            HorizontalDivider(color = BorderColor)
+            Spacer(modifier = Modifier.height(20.dp))
+            HorizontalDivider(color = colorScheme.outlineVariant)
             Spacer(modifier = Modifier.height(16.dp))
 
             SectionHeader(title = "Notifikasi")
             Spacer(modifier = Modifier.height(10.dp))
             SwitchItemRow(
-                title = "Pemberitahuan",
+                title = "Pemberitahuan Aplikasi",
+                subtitle = "Pengingat rencana kunjungan & rekomendasi tempat baru",
                 checked = uiState.pushNotificationsEnabled,
                 onCheckedChange = onTogglePushNotifications
             )
             SwitchItemRow(
                 title = "Notifikasi Email",
+                subtitle = "Ringkasan jadwal perjalanan & pembaruan akun",
                 checked = uiState.emailNotificationsEnabled,
                 onCheckedChange = onToggleEmailNotifications
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
-            HorizontalDivider(color = BorderColor)
+            Spacer(modifier = Modifier.height(20.dp))
+            HorizontalDivider(color = colorScheme.outlineVariant)
             Spacer(modifier = Modifier.height(16.dp))
 
-            SectionHeader(title = "Dukungan")
+            SectionHeader(title = "Dukungan & Legal")
             Spacer(modifier = Modifier.height(10.dp))
             NavigationItemRow(
                 title = "Kontak Dukungan",
-                onClick = { onShowMessage("Hubungi dukungan di bantuan@jelajahkota.id") }
+                subtitle = "bantuan@jelajahkota.id",
+                onClick = { showSupportDialog = true }
             )
             NavigationItemRow(
-                title = "Beri Nilai",
-                onClick = { onShowMessage("Terima kasih! Penilaian aplikasi akan tersedia di Google Play.") }
-            )
-            NavigationItemRow(
-                title = "Ketentuan Layanan",
-                onClick = { onShowMessage("Ketentuan Layanan & Kebijakan Privasi JelajahKota v1.0.") }
+                title = "Ketentuan Layanan & Privasi",
+                onClick = { showTermsDialog = true }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
-            HorizontalDivider(color = BorderColor)
-            Spacer(modifier = Modifier.height(16.dp))
-
-            SectionHeader(title = "Lainnya")
-            Spacer(modifier = Modifier.height(10.dp))
-            NavigationItemRow(
-                title = "Bahasa",
-                subtitle = "Bahasa Indonesia",
-                onClick = { onShowMessage("Saat ini JelajahKota menggunakan Bahasa Indonesia.") }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Keluar",
-                fontFamily = Lato,
-                fontWeight = FontWeight.Bold,
-                fontSize = 15.sp,
-                color = ErrorRed,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { showLogoutDialog = true }
-                    .padding(vertical = 12.dp)
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 
-    if (showLogoutDialog) {
-        AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
-            title = {
-                Text(
-                    text = "Konfirmasi Keluar",
-                    fontFamily = JosefinSans,
-                    fontWeight = FontWeight.Bold
+    if (showSupportDialog) {
+        InfoModalDialog(
+            title = "Kontak Dukungan",
+            sections = listOf(
+                InfoSection(
+                    heading = "Email Dukungan",
+                    body = "Kirim pertanyaan, laporan bug, atau usulan destinasi Kota Malang ke bantuan@jelajahkota.id."
+                ),
+                InfoSection(
+                    heading = "Jam Operasional",
+                    body = "Senin – Jumat, pukul 09.00 – 17.00 WIB."
                 )
-            },
-            text = {
-                Text(
-                    text = "Apakah Anda yakin ingin keluar dari akun JelajahKota?",
-                    fontFamily = Lato,
-                    fontSize = 14.sp,
-                    color = SubtitleText
+            ),
+            onDismiss = { showSupportDialog = false }
+        )
+    }
+
+    if (showTermsDialog) {
+        InfoModalDialog(
+            title = "Ketentuan Layanan & Privasi",
+            sections = listOf(
+                InfoSection(
+                    heading = "Konten Pengguna",
+                    body = "Ulasan dan foto pengunjung yang Anda unggah dapat dilihat oleh pengguna lain sebagai referensi wisata. Anda memiliki kendali penuh untuk mengubah atau menghapus ulasan maupun foto milik Anda sendiri."
+                ),
+                InfoSection(
+                    heading = "Perlindungan Data",
+                    body = "Data profil, daftar favorit, dan rencana kunjungan disimpan secara aman menggunakan autentikasi dan kebijakan Row-Level Security (RLS) sehingga hanya pemilik akun yang dapat mengakses data pribadi."
                 )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showLogoutDialog = false
-                        onSignOutClick()
-                    }
-                ) {
-                    Text(
-                        text = "Ya, Keluar",
-                        fontFamily = Lato,
-                        fontWeight = FontWeight.Bold,
-                        color = ErrorRed
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) {
-                    Text(
-                        text = "Batal",
-                        fontFamily = Lato,
-                        color = DarkText
-                    )
-                }
-            }
+            ),
+            onDismiss = { showTermsDialog = false }
         )
     }
 }
@@ -255,7 +212,7 @@ private fun SectionHeader(title: String) {
         fontFamily = Lato,
         fontWeight = FontWeight.Bold,
         fontSize = 17.sp,
-        color = DarkText
+        color = MaterialTheme.colorScheme.onBackground
     )
 }
 
@@ -265,72 +222,85 @@ private fun NavigationItemRow(
     subtitle: String? = null,
     onClick: () -> Unit
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(vertical = 12.dp),
+            .clickable(onClick = onClick)
+            .padding(vertical = 14.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = title,
-            fontFamily = Lato,
-            fontWeight = FontWeight.Normal,
-            fontSize = 14.sp,
-            color = SubtitleText
-        )
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                fontFamily = Lato,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                color = colorScheme.onSurface
+            )
             if (subtitle != null) {
+                Spacer(modifier = Modifier.height(2.dp))
                 Text(
                     text = subtitle,
                     fontFamily = Lato,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 13.sp,
-                    color = SubtitleText,
-                    modifier = Modifier.padding(end = 8.dp)
+                    fontSize = 12.sp,
+                    color = colorScheme.onSurfaceVariant
                 )
             }
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
-                contentDescription = null,
-                tint = SubtitleText,
-                modifier = Modifier.size(14.dp)
-            )
         }
+
+        Icon(
+            imageVector = Icons.AutoMirrored.Filled.ArrowForwardIos,
+            contentDescription = null,
+            tint = colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(14.dp)
+        )
     }
 }
 
 @Composable
 private fun SwitchItemRow(
     title: String,
+    subtitle: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp),
+            .padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = title,
-            fontFamily = Lato,
-            fontWeight = FontWeight.Normal,
-            fontSize = 14.sp,
-            color = SubtitleText
-        )
+        Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+            Text(
+                text = title,
+                fontFamily = Lato,
+                fontWeight = FontWeight.Medium,
+                fontSize = 14.sp,
+                color = colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = subtitle,
+                fontFamily = Lato,
+                fontSize = 12.sp,
+                color = colorScheme.onSurfaceVariant
+            )
+        }
 
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = White,
-                checkedTrackColor = BrandBluePrimary,
-                uncheckedThumbColor = White,
-                uncheckedTrackColor = SurfaceGray
+                checkedThumbColor = colorScheme.onPrimary,
+                checkedTrackColor = colorScheme.primary,
+                uncheckedThumbColor = colorScheme.surface,
+                uncheckedTrackColor = colorScheme.surfaceVariant
             )
         )
     }
@@ -339,14 +309,14 @@ private fun SwitchItemRow(
 @Preview(showBackground = true)
 @Composable
 private fun SettingsScreenPreview() {
-    SettingsScreen(
-        uiState = ProfileUiState(),
-        onToggleLocation = {},
-        onToggleDarkMode = {},
-        onTogglePushNotifications = {},
-        onToggleEmailNotifications = {},
-        onNavigateToEditProfile = {},
-        onSignOutClick = {},
-        onNavigateBack = {}
-    )
+    JelajahKotaTheme {
+        SettingsScreen(
+            uiState = ProfileUiState(),
+            onToggleLocation = {},
+            onToggleDarkMode = {},
+            onTogglePushNotifications = {},
+            onToggleEmailNotifications = {},
+            onNavigateBack = {}
+        )
+    }
 }

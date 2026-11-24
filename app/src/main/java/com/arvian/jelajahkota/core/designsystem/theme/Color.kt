@@ -7,17 +7,27 @@ val BrandBluePrimary = Color(0xFF005BBF)
 val BrandBlueDark = Color(0xFF004494)
 val BrandBlueContainer = Color(0xFFE6F0FA)
 val BrandBlueOutline = Color(0xFF005BBF)
+val BrandBlueLightDarkMode = Color(0xFF62A8FF)
 
 // Accent Orange Ribbon
 val OrangeRibbon = Color(0xFFF26800)
 val OrangeRibbonShadow = Color(0xFFBF5000)
 
-// Neutrals
+// Neutrals (Light reference tokens)
 val DarkText = Color(0xFF151111)
 val SubtitleText = Color(0xFF4A4545)
 val White = Color(0xFFFFFFFF)
 val PageIndicatorActive = Color(0xFF005BBF)
 val PageIndicatorInactive = Color(0xFFD0D7DE)
+
+// Dark Surfaces
+val DarkBackground = Color(0xFF0F131A)
+val DarkSurface = Color(0xFF161B24)
+val DarkSurfaceVariant = Color(0xFF1F2633)
+val DarkSurfaceHigh = Color(0xFF283142)
+val DarkOnSurface = Color(0xFFEDF1F7)
+val DarkOnSurfaceVariant = Color(0xFFA8B3C5)
+val DarkOutlineVariant = Color(0xFF333D4F)
 
 // Splash Gradient Overlays
 val SplashOverlayStart = Color(0xB8002E66)
@@ -41,6 +51,8 @@ val SuccessGreen = Color(0xFF2E7D32)
 val SuccessGreenContainer = Color(0xFFE8F5E9)
 val ErrorRed = Color(0xFFD32F2F)
 val ErrorRedContainer = Color(0xFFFFEBEE)
+val ErrorRedDark = Color(0xFFFF6B6B)
+val ErrorRedContainerDark = Color(0xFF3B191C)
 val HeartRed = Color(0xFFE53935)
 val RatingTrack = Color(0xFFECEFF1)
 val GoogleButtonBorder = Color(0xFFDADCE0)

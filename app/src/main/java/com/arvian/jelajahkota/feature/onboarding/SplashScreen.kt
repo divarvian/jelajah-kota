@@ -23,6 +23,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -30,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arvian.jelajahkota.R
+import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaLocalImage
 import com.arvian.jelajahkota.core.designsystem.theme.BrandBluePrimary
 import com.arvian.jelajahkota.core.designsystem.theme.JelajahKotaTheme
 import com.arvian.jelajahkota.core.designsystem.theme.JosefinSans
@@ -38,9 +41,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/**
- * Screen 1 — Welcome / Custom Splash (Figma Node 415:300)
- */
 @Composable
 fun SplashScreen(
     onSplashFinished: () -> Unit,
@@ -75,11 +75,25 @@ fun SplashScreen(
             .fillMaxSize()
             .background(BrandBluePrimary)
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.bg_splash_city),
+        JelajahKotaLocalImage(
+            drawableResId = R.drawable.bg_splash_city,
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
+        )
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0x66001E45),
+                            Color(0x88002B63),
+                            Color(0xAA001836)
+                        )
+                    )
+                )
         )
 
         Row(

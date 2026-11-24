@@ -1,12 +1,41 @@
-# Add project specific R8 rules here.
-# AGP will combine all keep rule files in src/main/keepRules to pass to R8
-#
-# For more details, see
-#   https://d.android.com/r/tools/r8/keep-rules
+# =============================================================================
+# JelajahKota — R8 / ProGuard Keep Rules
+# Covers Kotlinx Serialization, Type-Safe Navigation Compose, Supabase Kotlin SDK v3,
+# Ktor 3 Android Engine, and Coil 3.
+# =============================================================================
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Preserve Kotlin metadata & annotations needed by Serialization / Compose / Navigation
+-keepattributes *Annotation*, Signature, InnerClasses, EnclosingMethod
+-keep class kotlin.Metadata { *; }
+
+# Kotlinx Serialization (DTOs & Type-Safe Navigation Destinations)
+-keepclassmembers class kotlinx.serialization.json.** {
+    *** Companion;
+}
+-keepclasseswithmembers class kotlinx.serialization.json.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep,includedescriptorclasses class com.arvian.jelajahkota.navigation.**$$serializer { *; }
+-keepclassmembers class com.arvian.jelajahkota.navigation.** {
+    *** Companion;
+}
+-keepclasseswithmembers class com.arvian.jelajahkota.navigation.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep,includedescriptorclasses class com.arvian.jelajahkota.core.data.supabase.dto.**$$serializer { *; }
+-keepclassmembers class com.arvian.jelajahkota.core.data.supabase.dto.** {
+    *** Companion;
+}
+-keepclasseswithmembers class com.arvian.jelajahkota.core.data.supabase.dto.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+# Supabase Kotlin SDK & Ktor HTTP Engine
+-keep class io.github.jan.supabase.** { *; }
+-dontwarn io.github.jan.supabase.**
+-dontwarn io.ktor.**
+-dontwarn org.slf4j.**
+-dontwarn java.lang.invoke.MethodHandle
+
+# Coil 3
+-dontwarn coil3.**

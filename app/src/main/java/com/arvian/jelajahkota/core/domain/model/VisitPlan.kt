@@ -8,6 +8,7 @@ data class VisitPlan(
     val placeName: String,
     val placeLocation: String,
     @param:DrawableRes val imageResId: Int,
+    val imageUrl: String? = null,
     val startDate: String,
     val endDate: String,
     val durationDays: Int,

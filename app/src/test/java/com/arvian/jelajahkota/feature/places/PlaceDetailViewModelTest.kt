@@ -111,6 +111,7 @@ class PlaceDetailViewModelTest {
         private val review = Review(
             id = "r1",
             placeId = "place_jodipan",
+            userId = "u1",
             authorName = "Budi",
             rating = 5.0,
             date = "Baru saja",
@@ -119,9 +120,14 @@ class PlaceDetailViewModelTest {
 
         override fun getReviewsForPlace(placeId: String): Flow<List<Review>> = flowOf(listOf(review))
         override fun getAllReviews(): Flow<List<Review>> = flowOf(listOf(review))
+        override fun getReviewsByUser(userId: String): Flow<List<Review>> = flowOf(listOf(review))
         override fun getReviewMetricsForPlace(placeId: String): Flow<ReviewMetrics> =
-            flowOf(ReviewMetrics(5.0, 1, 5.0, 5.0, 5.0, 5.0, 5.0, 5.0))
+            flowOf(ReviewMetrics.fromReviews(listOf(review)))
 
         override suspend fun submitReview(review: Review): Result<Review> = Result.success(review)
+        override suspend fun updateReview(reviewId: String, rating: Double, content: String): Result<Review> =
+            Result.success(review.copy(rating = rating, content = content))
+
+        override suspend fun deleteReview(reviewId: String): Result<Unit> = Result.success(Unit)
     }
 }

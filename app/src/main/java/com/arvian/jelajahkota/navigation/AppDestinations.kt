@@ -26,9 +26,6 @@ data object SignUpDestination
 data object ForgotPasswordDestination
 
 @Serializable
-data class EmailSentDestination(val email: String)
-
-@Serializable
 data class OtpVerificationDestination(val email: String)
 
 @Serializable
@@ -38,26 +35,10 @@ data class ResetPasswordDestination(val email: String)
 data object PasswordUpdatedDestination
 
 // ----------------------------------------------------
-// Top-Level Main Shell Destinations (Unified Bottom Bar)
+// Top-Level Main Shell (Hosts 5 Bottom-Nav Tabs)
 // ----------------------------------------------------
 @Serializable
-data object MainDestination
-
-@Serializable
-data class ExploreDestination(
-    val initialQuery: String = "",
-    val initialCity: String? = null,
-    val initialCategory: String? = null
-)
-
-@Serializable
-data object PlansListDestination
-
-@Serializable
-data object FavoritesDestination
-
-@Serializable
-data object ProfileDestination
+data object MainShellDestination
 
 // ----------------------------------------------------
 // Destination Detail & Planning Destinations
@@ -76,10 +57,16 @@ data class PlanConfirmationDestination(
 )
 
 // ----------------------------------------------------
-// Reviews Flow Destination
+// Reviews & Visitor Gallery Destinations
 // ----------------------------------------------------
 @Serializable
 data class ReviewsDestination(val placeId: String)
+
+@Serializable
+data object MyReviewsDestination
+
+@Serializable
+data class PlaceGalleryDestination(val placeId: String)
 
 // ----------------------------------------------------
 // Settings & Profile Edit Destinations
@@ -94,12 +81,6 @@ data object EditProfileDestination
 data object AvatarUploadDestination
 
 // ----------------------------------------------------
-// Helper Extensions for Fast Top-Level Checks
+// Helper Extensions for Route Classification
 // ----------------------------------------------------
-fun NavDestination?.isTopLevel(): Boolean = this?.let {
-    it.hasRoute<MainDestination>() ||
-        it.hasRoute<ExploreDestination>() ||
-        it.hasRoute<PlansListDestination>() ||
-        it.hasRoute<FavoritesDestination>() ||
-        it.hasRoute<ProfileDestination>()
-} ?: false
+fun NavDestination?.isMainShell(): Boolean = this?.hasRoute<MainShellDestination>() == true

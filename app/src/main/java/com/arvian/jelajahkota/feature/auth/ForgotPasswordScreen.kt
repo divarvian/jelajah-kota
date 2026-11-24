@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,14 +42,10 @@ import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaOutlinedBut
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaPrimaryButton
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaTextField
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaTopAppBar
-import com.arvian.jelajahkota.core.designsystem.theme.BrandBluePrimary
 import com.arvian.jelajahkota.core.designsystem.theme.BrandOrangeAccent
-import com.arvian.jelajahkota.core.designsystem.theme.DarkText
-import com.arvian.jelajahkota.core.designsystem.theme.ErrorRed
+import com.arvian.jelajahkota.core.designsystem.theme.JelajahKotaTheme
 import com.arvian.jelajahkota.core.designsystem.theme.JosefinSans
 import com.arvian.jelajahkota.core.designsystem.theme.Lato
-import com.arvian.jelajahkota.core.designsystem.theme.SubtitleText
-import com.arvian.jelajahkota.core.designsystem.theme.White
 
 @Composable
 fun ForgotPasswordRoute(
@@ -61,7 +58,7 @@ fun ForgotPasswordRoute(
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
-            val email = uiState.email
+            val email = uiState.email.trim()
             viewModel.consumeSuccess()
             onLinkSent(email)
         }
@@ -84,10 +81,12 @@ fun ForgotPasswordScreen(
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(White)
+            .background(colorScheme.background)
     ) {
         JelajahKotaTopAppBar(
             onNavigateBack = onNavigateBack
@@ -113,7 +112,7 @@ fun ForgotPasswordScreen(
                     fontFamily = JosefinSans,
                     fontWeight = FontWeight.Bold,
                     fontSize = 28.sp,
-                    color = DarkText
+                    color = colorScheme.onBackground
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Box(
@@ -131,16 +130,16 @@ fun ForgotPasswordScreen(
                 fontFamily = Lato,
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp,
-                color = DarkText
+                color = colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Masukkan alamat email yang tertaut dengan akun Anda untuk mengatur ulang kata sandi Anda.",
+                text = "Masukkan alamat email yang tertaut dengan akun Anda. Kami akan mengirimkan 6 digit kode verifikasi untuk mengatur ulang kata sandi.",
                 fontFamily = Lato,
                 fontWeight = FontWeight.Normal,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
-                color = SubtitleText
+                color = colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(28.dp))
@@ -160,8 +159,7 @@ fun ForgotPasswordScreen(
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Email,
-                        contentDescription = null,
-                        tint = BrandBluePrimary
+                        contentDescription = null
                     )
                 }
             )
@@ -173,7 +171,7 @@ fun ForgotPasswordScreen(
                     fontFamily = Lato,
                     fontWeight = FontWeight.Normal,
                     fontSize = 12.sp,
-                    color = ErrorRed
+                    color = colorScheme.error
                 )
             }
 
@@ -186,11 +184,11 @@ fun ForgotPasswordScreen(
                         .height(48.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = BrandBluePrimary)
+                    CircularProgressIndicator(color = colorScheme.primary)
                 }
             } else {
                 JelajahKotaPrimaryButton(
-                    text = "Kirim Kode Reset Kata Sandi",
+                    text = "Kirim Kode Verifikasi",
                     onClick = onSubmitClick
                 )
             }
@@ -208,10 +206,12 @@ fun ForgotPasswordScreen(
 @Preview(showBackground = true)
 @Composable
 private fun ForgotPasswordScreenPreview() {
-    ForgotPasswordScreen(
-        uiState = ForgotPasswordUiState(email = "penjelajah@jelajahkota.id"),
-        onEmailChange = {},
-        onSubmitClick = {},
-        onNavigateBack = {}
-    )
+    JelajahKotaTheme {
+        ForgotPasswordScreen(
+            uiState = ForgotPasswordUiState(email = "penjelajah@jelajahkota.id"),
+            onEmailChange = {},
+            onSubmitClick = {},
+            onNavigateBack = {}
+        )
+    }
 }

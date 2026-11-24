@@ -7,7 +7,6 @@ import androidx.navigation.compose.composable
 import com.arvian.jelajahkota.di.AppContainer
 import com.arvian.jelajahkota.feature.profile.AvatarUploadRoute
 import com.arvian.jelajahkota.feature.profile.EditProfileRoute
-import com.arvian.jelajahkota.feature.profile.ProfileRoute
 import com.arvian.jelajahkota.feature.profile.ProfileViewModel
 import com.arvian.jelajahkota.feature.profile.SettingsRoute
 
@@ -18,7 +17,8 @@ private fun createProfileFactory(container: AppContainer): ProfileViewModel.Fact
         preferencesRepository = container.preferencesRepository,
         favoritesRepository = container.favoritesRepository,
         plansRepository = container.plansRepository,
-        reviewsRepository = container.reviewsRepository
+        reviewsRepository = container.reviewsRepository,
+        locationProvider = container.locationProvider
     )
 
 internal fun NavGraphBuilder.profileNavGraph(
@@ -26,37 +26,12 @@ internal fun NavGraphBuilder.profileNavGraph(
     container: AppContainer,
     showMessage: (String) -> Unit
 ) {
-    composable<ProfileDestination> {
-        val profileViewModel: ProfileViewModel = viewModel(factory = createProfileFactory(container))
-        ProfileRoute(
-            viewModel = profileViewModel,
-            onNavigateToEditProfile = { navController.navigate(EditProfileDestination) },
-            onNavigateToAvatarUpload = { navController.navigate(AvatarUploadDestination) },
-            onNavigateToSettings = { navController.navigate(SettingsDestination) },
-            onNavigateToFavorites = { navController.navigateTopLevelTab(FavoritesDestination) },
-            onNavigateToPlans = { navController.navigateTopLevelTab(PlansListDestination) },
-            onShowMessage = showMessage,
-            onSignedOut = {
-                navController.navigate(SignInDestination) {
-                    popUpTo(0) { inclusive = true }
-                }
-            }
-        )
-    }
-
     composable<SettingsDestination> {
         val profileViewModel: ProfileViewModel = viewModel(factory = createProfileFactory(container))
         SettingsRoute(
             viewModel = profileViewModel,
-            onNavigateBack = { navController.popBackStack() },
-            onNavigateToEditProfile = { navController.navigate(EditProfileDestination) },
-            onShowMessage = showMessage,
-            onSignedOut = {
-                navController.navigate(SignInDestination) {
-                    popUpTo(0) { inclusive = true }
-                }
-            },
-            isRootTab = false
+            onNavigateBack = { navController.safePopBackStack() },
+            onShowMessage = showMessage
         )
     }
 
@@ -64,10 +39,10 @@ internal fun NavGraphBuilder.profileNavGraph(
         val profileViewModel: ProfileViewModel = viewModel(factory = createProfileFactory(container))
         EditProfileRoute(
             viewModel = profileViewModel,
-            onNavigateBack = { navController.popBackStack() },
+            onNavigateBack = { navController.safePopBackStack() },
             onSaved = {
                 showMessage("Profil berhasil disimpan!")
-                navController.navigate(AvatarUploadDestination)
+                navController.safePopBackStack()
             }
         )
     }
@@ -76,13 +51,10 @@ internal fun NavGraphBuilder.profileNavGraph(
         val profileViewModel: ProfileViewModel = viewModel(factory = createProfileFactory(container))
         AvatarUploadRoute(
             viewModel = profileViewModel,
-            onNavigateBack = { navController.popBackStack() },
-            onSkip = {
-                navController.navigateTopLevelTab(ProfileDestination)
-            },
+            onNavigateBack = { navController.safePopBackStack() },
             onSaved = {
                 showMessage("Foto profil berhasil diperbarui!")
-                navController.navigateTopLevelTab(ProfileDestination)
+                navController.safePopBackStack()
             }
         )
     }

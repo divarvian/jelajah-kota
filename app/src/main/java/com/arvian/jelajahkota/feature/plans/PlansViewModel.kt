@@ -6,11 +6,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.arvian.jelajahkota.core.domain.model.Place
 import com.arvian.jelajahkota.core.domain.model.VisitPlan
+import com.arvian.jelajahkota.core.domain.repository.AuthRepository
 import com.arvian.jelajahkota.core.domain.repository.PlacesRepository
 import com.arvian.jelajahkota.core.domain.repository.PlansRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.time.DayOfWeek
@@ -23,6 +25,7 @@ import java.time.temporal.ChronoUnit
 data class PlansUiState(
     val selectedPlace: Place? = null,
     val savedPlans: List<VisitPlan> = emptyList(),
+    val isLoggedIn: Boolean = true,
     val minSelectableDate: LocalDate = LocalDate.now(),
     val displayedMonth: YearMonth = YearMonth.now(),
     val startDate: LocalDate = LocalDate.now(),
@@ -111,20 +114,24 @@ class PlansViewModel(
     private val placeId: String? = null,
     initialStartEpochDay: Long? = null,
     initialEndEpochDay: Long? = null,
-    today: LocalDate = LocalDate.now()
+    today: LocalDate = LocalDate.now(),
+    private val authRepository: AuthRepository? = null
 ) : ViewModel() {
 
     private val initialStart = initialStartEpochDay?.let(LocalDate::ofEpochDay) ?: today
     private val initialEnd = initialEndEpochDay?.let(LocalDate::ofEpochDay)?.takeIf { !it.isBefore(initialStart) }
         ?: initialStart.plusDays(2)
 
+    private val initialPlace = placeId?.let(placesRepository::getCachedPlaceById)
+
     private val _uiState = MutableStateFlow(
         PlansUiState(
+            selectedPlace = initialPlace,
             minSelectableDate = today,
             displayedMonth = YearMonth.from(initialStart),
             startDate = initialStart,
             endDate = initialEnd,
-            isLoading = true
+            isLoading = !placeId.isNullOrBlank() && initialPlace == null
         )
     )
     val uiState: StateFlow<PlansUiState> = _uiState.asStateFlow()
@@ -136,8 +143,21 @@ class PlansViewModel(
     private fun loadData() {
         viewModelScope.launch {
             launch {
-                plansRepository.getPlans().collect { plansList ->
-                    _uiState.update { it.copy(savedPlans = plansList, isLoading = false) }
+                val authFlow = authRepository?.getCurrentUser()
+                if (authFlow != null) {
+                    combine(plansRepository.getPlans(), authFlow) { plansList, user ->
+                        Pair(if (user != null) plansList else emptyList(), user != null)
+                    }.collect { (plansList, loggedIn) ->
+                        _uiState.update {
+                            it.copy(savedPlans = plansList, isLoggedIn = loggedIn, isLoading = false)
+                        }
+                    }
+                } else {
+                    plansRepository.getPlans().collect { plansList ->
+                        _uiState.update {
+                            it.copy(savedPlans = plansList, isLoggedIn = true, isLoading = false)
+                        }
+                    }
                 }
             }
 
@@ -263,7 +283,8 @@ class PlansViewModel(
         private val placesRepository: PlacesRepository,
         private val placeId: String? = null,
         private val initialStartEpochDay: Long? = null,
-        private val initialEndEpochDay: Long? = null
+        private val initialEndEpochDay: Long? = null,
+        private val authRepository: AuthRepository? = null
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -272,7 +293,8 @@ class PlansViewModel(
                 placesRepository = placesRepository,
                 placeId = placeId,
                 initialStartEpochDay = initialStartEpochDay,
-                initialEndEpochDay = initialEndEpochDay
+                initialEndEpochDay = initialEndEpochDay,
+                authRepository = authRepository
             ) as T
         }
     }

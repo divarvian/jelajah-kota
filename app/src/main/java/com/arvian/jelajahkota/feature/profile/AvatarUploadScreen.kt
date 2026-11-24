@@ -1,8 +1,9 @@
 package com.arvian.jelajahkota.feature.profile
 
-import androidx.compose.foundation.Image
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,39 +19,41 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.arvian.jelajahkota.R
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaOutlinedButton
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaPrimaryButton
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaTopAppBar
-import com.arvian.jelajahkota.core.designsystem.theme.BrandBlueContainer
-import com.arvian.jelajahkota.core.designsystem.theme.BrandBluePrimary
+import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaUserAvatar
+import com.arvian.jelajahkota.core.designsystem.theme.JelajahKotaTheme
 import com.arvian.jelajahkota.core.designsystem.theme.Lato
-import com.arvian.jelajahkota.core.designsystem.theme.SubtitleText
-import com.arvian.jelajahkota.core.designsystem.theme.White
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun AvatarUploadRoute(
     viewModel: ProfileViewModel,
     onNavigateBack: () -> Unit,
-    onSkip: () -> Unit,
     onSaved: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(uiState.avatarUpdated) {
         if (uiState.avatarUpdated) {
@@ -59,20 +62,39 @@ fun AvatarUploadRoute(
         }
     }
 
-    LaunchedEffect(uiState.saveSuccess) {
-        if (uiState.saveSuccess) {
-            viewModel.consumeSaveSuccess()
-            onSaved()
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) {
+            scope.launch {
+                val readResult = withContext(Dispatchers.IO) {
+                    runCatching {
+                        val mimeType = context.contentResolver.getType(uri)
+                        val bytes = context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                            ?: error("Tidak dapat membaca file gambar yang dipilih.")
+                        Pair(bytes, mimeType)
+                    }
+                }
+                readResult.fold(
+                    onSuccess = { (bytes, mimeType) ->
+                        viewModel.uploadAvatarBytes(bytes, mimeType)
+                    },
+                    onFailure = { error ->
+                        viewModel.reportError(error.message ?: "Gagal membaca foto yang dipilih.")
+                    }
+                )
+            }
         }
     }
 
     AvatarUploadScreen(
         uiState = uiState,
         onPickPhotoClick = {
-            viewModel.uploadAvatar("local://avatar_${System.currentTimeMillis()}.webp")
+            photoPickerLauncher.launch(
+                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+            )
         },
-        onSaveClick = viewModel::saveProfile,
-        onSkipClick = onSkip,
+        onSaveClick = onNavigateBack,
         onNavigateBack = onNavigateBack,
         modifier = modifier
     )
@@ -83,31 +105,20 @@ fun AvatarUploadScreen(
     uiState: ProfileUiState,
     onPickPhotoClick: () -> Unit,
     onSaveClick: () -> Unit,
-    onSkipClick: () -> Unit,
     onNavigateBack: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(White),
+            .background(colorScheme.background),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         JelajahKotaTopAppBar(
-            title = "Tambah Foto",
-            onNavigateBack = onNavigateBack,
-            actions = {
-                Text(
-                    text = "Lewati",
-                    fontFamily = Lato,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 15.sp,
-                    color = SubtitleText,
-                    modifier = Modifier
-                        .clickable { onSkipClick() }
-                        .padding(horizontal = 8.dp, vertical = 6.dp)
-                )
-            }
+            title = "Ganti Foto Profil",
+            onNavigateBack = onNavigateBack
         )
 
         Column(
@@ -119,23 +130,18 @@ fun AvatarUploadScreen(
         ) {
             Spacer(modifier = Modifier.height(40.dp))
 
-            val avatarRes = uiState.user.avatarResId.takeIf { it != 0 } ?: R.drawable.img_user_avatar
             Box(
                 modifier = Modifier
                     .size(160.dp)
-                    .clip(CircleShape)
-                    .background(BrandBlueContainer)
-                    .border(2.dp, BrandBluePrimary, CircleShape)
-                    .clickable(onClick = onPickPhotoClick),
+                    .clickable(enabled = !uiState.isSaving, onClick = onPickPhotoClick),
                 contentAlignment = Alignment.Center
             ) {
-                Image(
-                    painter = painterResource(id = avatarRes),
-                    contentDescription = "Avatar Pengguna",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(150.dp)
-                        .clip(CircleShape)
+                JelajahKotaUserAvatar(
+                    avatarUrl = uiState.user?.avatarUrl,
+                    fullName = uiState.user?.fullName,
+                    size = 156.dp,
+                    showBorder = true,
+                    contentDescription = "Avatar Pengguna"
                 )
 
                 Box(
@@ -143,23 +149,45 @@ fun AvatarUploadScreen(
                         .align(Alignment.BottomEnd)
                         .size(44.dp)
                         .clip(CircleShape)
-                        .background(BrandBluePrimary),
+                        .background(colorScheme.primary),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.CameraAlt,
                         contentDescription = "Pilih Foto",
-                        tint = White,
+                        tint = colorScheme.onPrimary,
                         modifier = Modifier.size(22.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Format JPG, PNG, atau WebP • Maksimal 2 MB",
+                fontFamily = Lato,
+                fontSize = 12.sp,
+                color = colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center
+            )
+
+            if (uiState.errorMessage != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = uiState.errorMessage,
+                    fontFamily = Lato,
+                    fontSize = 13.sp,
+                    color = colorScheme.error,
+                    textAlign = TextAlign.Center
+                )
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
 
             JelajahKotaOutlinedButton(
-                text = "Pilih Foto Profil",
-                onClick = onPickPhotoClick
+                text = "Pilih Foto dari Galeri",
+                onClick = onPickPhotoClick,
+                enabled = !uiState.isSaving
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -171,11 +199,11 @@ fun AvatarUploadScreen(
                         .height(48.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = BrandBluePrimary)
+                    CircularProgressIndicator(color = colorScheme.primary)
                 }
             } else {
                 JelajahKotaPrimaryButton(
-                    text = "Simpan",
+                    text = "Selesai",
                     onClick = onSaveClick
                 )
             }
@@ -188,11 +216,12 @@ fun AvatarUploadScreen(
 @Preview(showBackground = true)
 @Composable
 private fun AvatarUploadScreenPreview() {
-    AvatarUploadScreen(
-        uiState = ProfileUiState(),
-        onPickPhotoClick = {},
-        onSaveClick = {},
-        onSkipClick = {},
-        onNavigateBack = {}
-    )
+    JelajahKotaTheme {
+        AvatarUploadScreen(
+            uiState = ProfileUiState(),
+            onPickPhotoClick = {},
+            onSaveClick = {},
+            onNavigateBack = {}
+        )
+    }
 }

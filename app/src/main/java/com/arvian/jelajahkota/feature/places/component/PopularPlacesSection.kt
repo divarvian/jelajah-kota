@@ -1,6 +1,5 @@
 package com.arvian.jelajahkota.feature.places.component
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,18 +10,20 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.LocationOn
 import androidx.compose.material.icons.rounded.NorthEast
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.StarBorder
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,32 +31,33 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.arvian.jelajahkota.R
-import com.arvian.jelajahkota.core.designsystem.theme.BrandBluePrimary
+import com.arvian.jelajahkota.core.common.location.UserCoordinates
+import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaAsyncImage
 import com.arvian.jelajahkota.core.designsystem.theme.CardDarkOverlay
-import com.arvian.jelajahkota.core.designsystem.theme.DarkText
 import com.arvian.jelajahkota.core.designsystem.theme.Lato
-import androidx.compose.foundation.shape.RoundedCornerShape
 import com.arvian.jelajahkota.core.designsystem.theme.StarYellow
 import com.arvian.jelajahkota.core.designsystem.theme.White
 import com.arvian.jelajahkota.core.domain.model.Place
+import java.util.Locale
 
 @Composable
 fun PopularPlacesSection(
     places: List<Place>,
     onPlaceClick: (Place) -> Unit,
     onSeeAllClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    title: String = "Destinasi Populer",
+    userLocation: UserCoordinates? = null
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Column(
         modifier = modifier.fillMaxWidth()
     ) {
-        // Section Header
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -64,31 +66,42 @@ fun PopularPlacesSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Destinasi Populer",
+                text = title,
                 fontFamily = Lato,
                 fontWeight = FontWeight.SemiBold,
                 fontSize = 18.sp,
-                color = DarkText
+                color = colorScheme.onBackground,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
             )
+
+            Spacer(modifier = Modifier.width(8.dp))
 
             Text(
                 text = "Lihat Semua",
                 fontFamily = Lato,
-                fontWeight = FontWeight.Normal,
+                fontWeight = FontWeight.SemiBold,
                 fontSize = 13.sp,
-                color = BrandBluePrimary,
-                modifier = Modifier.clickable(onClick = onSeeAllClick)
+                color = colorScheme.primary,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable(onClick = onSeeAllClick)
+                    .padding(horizontal = 4.dp, vertical = 4.dp)
             )
         }
 
-        // Horizontal Card Carousel
         LazyRow(
             contentPadding = PaddingValues(horizontal = 24.dp, vertical = 6.dp),
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             items(places, key = { it.id }) { place ->
+                val distanceLabel = userLocation?.let { coords ->
+                    place.distanceKmFrom(coords.latitude, coords.longitude)?.let(Place::formatDistanceLabel)
+                }
                 PopularPlaceCard(
                     place = place,
+                    distanceLabel = distanceLabel,
                     onClick = { onPlaceClick(place) }
                 )
             }
@@ -100,30 +113,49 @@ fun PopularPlacesSection(
 fun PopularPlaceCard(
     place: Place,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    distanceLabel: String? = null
 ) {
     Box(
         modifier = modifier
-            .size(width = 200.dp, height = 200.dp)
-            .clip(RoundedCornerShape(30.dp))
+            .size(width = 212.dp, height = 210.dp)
+            .clip(RoundedCornerShape(26.dp))
             .clickable(onClick = onClick)
     ) {
-        // Background Place Image
-        Image(
-            painter = painterResource(id = place.imageResId),
+        JelajahKotaAsyncImage(
+            imageUrl = place.imageUrl,
+            fallbackResId = place.imageResId,
             contentDescription = place.name,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
 
-        // Top Right Export Arrow Icon
+        if (!distanceLabel.isNullOrBlank()) {
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = Color.Black.copy(alpha = 0.56f),
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(top = 12.dp, start = 12.dp)
+            ) {
+                Text(
+                    text = distanceLabel,
+                    fontFamily = Lato,
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 10.sp,
+                    color = White,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+            }
+        }
+
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 16.dp, end = 16.dp)
+                .padding(top = 12.dp, end = 12.dp)
                 .size(28.dp)
                 .clip(RoundedCornerShape(14.dp))
-                .background(Color.Black.copy(alpha = 0.35f)),
+                .background(Color.Black.copy(alpha = 0.42f)),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -134,71 +166,66 @@ fun PopularPlaceCard(
             )
         }
 
-        // Bottom Info Overlay Badge
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 10.dp)
-                .size(width = 180.dp, height = 58.dp)
-                .clip(RoundedCornerShape(30.dp))
+                .padding(horizontal = 10.dp, vertical = 10.dp)
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
                 .background(CardDarkOverlay)
-                .padding(horizontal = 14.dp, vertical = 6.dp),
+                .padding(horizontal = 14.dp, vertical = 8.dp),
             contentAlignment = Alignment.CenterStart
         ) {
-            Column(
-                verticalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxSize()
-            ) {
-                // Place Name
+            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     text = place.name,
                     fontFamily = Lato,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
+                    fontSize = 13.sp,
                     color = White,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                // Location row with Pin
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Rounded.LocationOn,
                         contentDescription = null,
-                        tint = White,
+                        tint = White.copy(alpha = 0.85f),
                         modifier = Modifier.size(11.dp)
                     )
-
-                    Spacer(modifier = Modifier.width(5.dp))
-
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = place.location,
+                        text = place.city,
                         fontFamily = Lato,
                         fontWeight = FontWeight.Normal,
-                        fontSize = 9.sp,
-                        color = White,
+                        fontSize = 10.sp,
+                        color = White.copy(alpha = 0.9f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
 
-                // Rating Stars + Score
-                Row(
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    RatingStars(rating = place.rating)
-
-                    Spacer(modifier = Modifier.width(6.dp))
-
-                    Text(
-                        text = String.format(java.util.Locale.US, "%.1f", place.rating),
-                        fontFamily = Lato,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 9.sp,
-                        color = White
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (place.hasLiveRating) {
+                        RatingStars(rating = place.rating)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = String.format(Locale.US, "%.1f", place.rating),
+                            fontFamily = Lato,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 10.sp,
+                            color = White
+                        )
+                    } else {
+                        Text(
+                            text = "Destinasi Baru • ${place.duration}",
+                            fontFamily = Lato,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 10.sp,
+                            color = White.copy(alpha = 0.88f)
+                        )
+                    }
                 }
             }
         }

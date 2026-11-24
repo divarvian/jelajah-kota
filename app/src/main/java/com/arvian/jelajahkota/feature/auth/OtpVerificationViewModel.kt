@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 
 data class OtpVerificationUiState(
     val email: String = "",
-    val otpValues: List<String> = listOf("", "", "", ""),
+    val otpValues: List<String> = List(OTP_LENGTH) { "" },
     val timerSeconds: Int = 120,
     val canResend: Boolean = false,
     val isLoading: Boolean = false,
@@ -29,7 +29,11 @@ data class OtpVerificationUiState(
         }
 
     val isComplete: Boolean
-        get() = otpValues.all { it.isNotBlank() }
+        get() = otpValues.size == OTP_LENGTH && otpValues.all { it.isNotBlank() }
+
+    companion object {
+        const val OTP_LENGTH = 6
+    }
 }
 
 class OtpVerificationViewModel(
@@ -78,8 +82,10 @@ class OtpVerificationViewModel(
 
     fun verifyCode() {
         val fullCode = _uiState.value.otpValues.joinToString("")
-        if (fullCode.length < 4) {
-            _uiState.update { it.copy(errorMessage = "Silakan masukkan 4 digit kode OTP.") }
+        if (fullCode.length < OtpVerificationUiState.OTP_LENGTH) {
+            _uiState.update {
+                it.copy(errorMessage = "Silakan masukkan ${OtpVerificationUiState.OTP_LENGTH} digit kode OTP.")
+            }
             return
         }
 

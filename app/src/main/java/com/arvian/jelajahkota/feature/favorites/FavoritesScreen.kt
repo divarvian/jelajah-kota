@@ -1,6 +1,5 @@
 package com.arvian.jelajahkota.feature.favorites
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,12 +9,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -30,6 +26,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,25 +34,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.arvian.jelajahkota.R
+import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaAsyncImage
+import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaOutlinedButton
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaPrimaryButton
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaTextField
 import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaTopAppBar
-import com.arvian.jelajahkota.core.designsystem.theme.BrandBluePrimary
-import com.arvian.jelajahkota.core.designsystem.theme.DarkText
 import com.arvian.jelajahkota.core.designsystem.theme.HeartRed
+import com.arvian.jelajahkota.core.designsystem.theme.JelajahKotaTheme
 import com.arvian.jelajahkota.core.designsystem.theme.JosefinSans
 import com.arvian.jelajahkota.core.designsystem.theme.Lato
-import com.arvian.jelajahkota.core.designsystem.theme.SubtitleText
-import com.arvian.jelajahkota.core.designsystem.theme.SurfaceGray
 import com.arvian.jelajahkota.core.designsystem.theme.White
 import com.arvian.jelajahkota.core.domain.model.Place
 
@@ -63,8 +59,10 @@ import com.arvian.jelajahkota.core.domain.model.Place
 fun FavoritesRoute(
     viewModel: FavoritesViewModel,
     modifier: Modifier = Modifier,
+    bottomContentPadding: Dp = 0.dp,
     onNavigateToPlaceDetail: (String) -> Unit = {},
-    onNavigateToExplore: () -> Unit = {}
+    onNavigateToExplore: () -> Unit = {},
+    onNavigateToSignIn: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -74,6 +72,8 @@ fun FavoritesRoute(
         onToggleFavorite = viewModel::toggleFavorite,
         onPlaceClick = onNavigateToPlaceDetail,
         onExploreClick = onNavigateToExplore,
+        onSignInClick = onNavigateToSignIn,
+        bottomContentPadding = bottomContentPadding,
         modifier = modifier
     )
 }
@@ -85,16 +85,17 @@ fun FavoritesScreen(
     onToggleFavorite: (String) -> Unit,
     onPlaceClick: (String) -> Unit,
     modifier: Modifier = Modifier,
-    onExploreClick: () -> Unit = {}
+    bottomContentPadding: Dp = 0.dp,
+    onExploreClick: () -> Unit = {},
+    onSignInClick: () -> Unit = {}
 ) {
-    val bottomNavInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val colorScheme = MaterialTheme.colorScheme
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(White)
+            .background(colorScheme.background)
     ) {
-        // Sticky Header: root tab has no back button
         JelajahKotaTopAppBar(
             title = "Tempat Favorit",
             isTitleCentered = true
@@ -105,20 +106,77 @@ fun FavoritesScreen(
                 .fillMaxSize()
                 .padding(horizontal = 20.dp)
         ) {
+            if (!uiState.isLoggedIn) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .padding(bottom = bottomContentPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.padding(24.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(72.dp)
+                                .clip(CircleShape)
+                                .background(colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Favorite,
+                                contentDescription = null,
+                                tint = colorScheme.onPrimaryContainer,
+                                modifier = Modifier.size(34.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Simpan Destinasi Favoritmu",
+                            fontFamily = JosefinSans,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = colorScheme.onBackground,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Masuk untuk menyimpan destinasi impian di Kota Malang dan mengaksesnya kapan saja.",
+                            fontFamily = Lato,
+                            fontSize = 13.sp,
+                            lineHeight = 19.sp,
+                            color = colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(22.dp))
+                        JelajahKotaPrimaryButton(
+                            text = "Masuk / Daftar",
+                            onClick = onSignInClick
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                        JelajahKotaOutlinedButton(
+                            text = "Jelajahi Destinasi",
+                            onClick = onExploreClick
+                        )
+                    }
+                }
+                return
+            }
+
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Subtitle
             Text(
                 text = "Semua destinasi yang Anda simpan tersusun rapi di sini.",
                 fontFamily = Lato,
                 fontWeight = FontWeight.Normal,
                 fontSize = 13.sp,
-                color = SubtitleText
+                color = colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Search Bar
             JelajahKotaTextField(
                 value = uiState.searchQuery,
                 onValueChange = onSearchQueryChange,
@@ -126,15 +184,13 @@ fun FavoritesScreen(
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
-                        contentDescription = null,
-                        tint = BrandBluePrimary
+                        contentDescription = null
                     )
                 }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Content Area
             if (uiState.isLoading) {
                 Box(
                     modifier = Modifier
@@ -142,13 +198,14 @@ fun FavoritesScreen(
                         .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(color = BrandBluePrimary)
+                    CircularProgressIndicator(color = colorScheme.primary)
                 }
             } else if (uiState.filteredPlaces.isEmpty()) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
+                        .weight(1f)
+                        .padding(bottom = bottomContentPadding),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(
@@ -159,13 +216,13 @@ fun FavoritesScreen(
                             modifier = Modifier
                                 .size(64.dp)
                                 .clip(CircleShape)
-                                .background(SurfaceGray),
+                                .background(colorScheme.surfaceVariant),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Favorite,
                                 contentDescription = null,
-                                tint = SubtitleText.copy(alpha = 0.5f),
+                                tint = colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                                 modifier = Modifier.size(32.dp)
                             )
                         }
@@ -177,7 +234,7 @@ fun FavoritesScreen(
                             fontFamily = JosefinSans,
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp,
-                            color = DarkText
+                            color = colorScheme.onBackground
                         )
 
                         Spacer(modifier = Modifier.height(6.dp))
@@ -189,7 +246,7 @@ fun FavoritesScreen(
                                 "Jelajahi berbagai destinasi menarik dan ketuk tombol hati untuk menyimpannya di sini.",
                             fontFamily = Lato,
                             fontSize = 13.sp,
-                            color = SubtitleText,
+                            color = colorScheme.onSurfaceVariant,
                             textAlign = TextAlign.Center
                         )
 
@@ -216,13 +273,13 @@ fun FavoritesScreen(
                         fontFamily = Lato,
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp,
-                        color = DarkText
+                        color = colorScheme.onBackground
                     )
                     Text(
                         text = "${uiState.filteredPlaces.size} Tempat",
                         fontFamily = Lato,
                         fontSize = 12.sp,
-                        color = SubtitleText
+                        color = colorScheme.onSurfaceVariant
                     )
                 }
 
@@ -230,7 +287,7 @@ fun FavoritesScreen(
                     columns = GridCells.Fixed(2),
                     horizontalArrangement = Arrangement.spacedBy(14.dp),
                     verticalArrangement = Arrangement.spacedBy(14.dp),
-                    contentPadding = PaddingValues(bottom = 84.dp + bottomNavInset),
+                    contentPadding = PaddingValues(bottom = bottomContentPadding + 16.dp),
                     modifier = Modifier.weight(1f)
                 ) {
                     items(
@@ -255,12 +312,14 @@ private fun FavoritePlaceCard(
     onToggleFavorite: () -> Unit,
     onPlaceClick: () -> Unit
 ) {
+    val colorScheme = MaterialTheme.colorScheme
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .border(1.dp, BrandBluePrimary.copy(alpha = 0.25f), RoundedCornerShape(16.dp))
-            .background(White)
+            .border(1.dp, colorScheme.outlineVariant, RoundedCornerShape(16.dp))
+            .background(colorScheme.surfaceContainerLow)
             .clickable { onPlaceClick() }
             .padding(bottom = 12.dp)
     ) {
@@ -269,14 +328,14 @@ private fun FavoritePlaceCard(
                 .fillMaxWidth()
                 .height(115.dp)
         ) {
-            Image(
-                painter = painterResource(id = place.imageResId),
+            JelajahKotaAsyncImage(
+                imageUrl = place.imageUrl,
+                fallbackResId = place.imageResId,
                 contentDescription = place.name,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
             )
 
-            // Heart Bookmark Badge
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -303,7 +362,7 @@ private fun FavoritePlaceCard(
             fontFamily = Lato,
             fontWeight = FontWeight.Bold,
             fontSize = 14.sp,
-            color = DarkText,
+            color = colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(horizontal = 10.dp)
@@ -318,7 +377,7 @@ private fun FavoritePlaceCard(
             Icon(
                 imageVector = Icons.Default.LocationOn,
                 contentDescription = null,
-                tint = SubtitleText,
+                tint = colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(12.dp)
             )
             Spacer(modifier = Modifier.width(3.dp))
@@ -327,7 +386,7 @@ private fun FavoritePlaceCard(
                 fontFamily = Lato,
                 fontWeight = FontWeight.Normal,
                 fontSize = 11.sp,
-                color = SubtitleText,
+                color = colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -338,21 +397,23 @@ private fun FavoritePlaceCard(
 @Preview(showBackground = true)
 @Composable
 private fun FavoritesScreenPreview() {
-    FavoritesScreen(
-        uiState = FavoritesUiState(
-            favoritePlaces = listOf(
-                Place(
-                    id = "1",
-                    name = "Coban Rondo",
-                    location = "Pujon, Kabupaten Malang",
-                    rating = 4.8,
-                    imageResId = R.drawable.img_place_malioboro
+    JelajahKotaTheme {
+        FavoritesScreen(
+            uiState = FavoritesUiState(
+                favoritePlaces = listOf(
+                    Place(
+                        id = "1",
+                        name = "Coban Rondo",
+                        location = "Pujon, Kabupaten Malang",
+                        rating = 4.8,
+                        imageResId = R.drawable.img_destination_waterfall
+                    )
                 )
-            )
-        ),
-        onSearchQueryChange = {},
-        onToggleFavorite = {},
-        onPlaceClick = {},
-        onExploreClick = {}
-    )
+            ),
+            onSearchQueryChange = {},
+            onToggleFavorite = {},
+            onPlaceClick = {},
+            onExploreClick = {}
+        )
+    }
 }

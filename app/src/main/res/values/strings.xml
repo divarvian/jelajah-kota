@@ -1,3 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">JelajahKota</string>
+
+    <!-- Navigation & Shell -->
+    <string name="nav_back">Kembali</string>
+    <string name="tab_home">Beranda</string>
+    <string name="tab_explore">Eksplorasi</string>
+    <string name="tab_plans">Jadwalkan</string>
+    <string name="tab_favorites">Favorit</string>
+    <string name="tab_profile">Profil</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_skip">Lewati</string>
+    <string name="onboarding_skip_cd">Lewati onboarding</string>
+    <string name="onboarding_sign_in">Masuk</string>
+    <string name="onboarding_sign_up">Daftar Akun</string>
+
+    <!-- Auth & Guest Prompt -->
+    <string name="auth_welcome_title">Selamat Datang!</string>
+    <string name="auth_welcome_subtitle">Masuk untuk menyimpan favorit, jadwal, dan ulasan Anda</string>
+    <string name="auth_email_label">Email</string>
+    <string name="auth_email_placeholder">nama@email.com</string>
+    <string name="auth_password_label">Kata Sandi</string>
+    <string name="auth_password_placeholder">Masukkan kata sandi</string>
+    <string name="auth_remember_email">Ingat Email</string>
+    <string name="auth_forgot_password">Lupa Kata Sandi?</string>
+    <string name="auth_continue_as_guest">Lanjutkan sebagai Tamu</string>
+    <string name="auth_required_title">Masuk untuk Melanjutkan</string>
+    <string name="auth_required_confirm">Masuk / Daftar</string>
+    <string name="auth_required_dismiss">Nanti Saja</string>
+
+    <!-- Common Actions -->
+    <string name="action_close">Tutup</string>
+    <string name="action_cancel">Batal</string>
+    <string name="action_delete">Hapus</string>
+    <string name="action_save">Simpan</string>
+    <string name="action_explore_destinations">Jelajahi Destinasi</string>
+
+    <!-- Profile, Settings & Gallery -->
+    <string name="profile_title">Profil Saya</string>
+    <string name="settings_title">Preferensi &amp; Notifikasi</string>
+    <string name="gallery_title">Galeri Pengunjung</string>
+    <string name="gallery_upload">Unggah Foto</string>
+    <string name="gallery_uploading">Mengunggah…</string>
+    <string name="my_reviews_title">Ulasan Saya</string>
 </resources>

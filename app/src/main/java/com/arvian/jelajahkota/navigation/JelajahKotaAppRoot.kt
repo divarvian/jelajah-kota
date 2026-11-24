@@ -1,21 +1,17 @@
 package com.arvian.jelajahkota.navigation
 
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -30,15 +26,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaBottomNavBar
-import com.arvian.jelajahkota.core.designsystem.component.JelajahKotaTab
-import com.arvian.jelajahkota.core.designsystem.theme.BrandBluePrimary
 import com.arvian.jelajahkota.core.designsystem.theme.JelajahKotaTheme
-import com.arvian.jelajahkota.core.designsystem.theme.White
 import com.arvian.jelajahkota.core.domain.model.AppSettings
 import com.arvian.jelajahkota.di.AppContainer
 import kotlinx.coroutines.launch
@@ -46,124 +40,110 @@ import kotlinx.coroutines.launch
 @Composable
 fun JelajahKotaAppRoot(
     container: AppContainer,
+    appSettings: AppSettings,
     modifier: Modifier = Modifier
 ) {
-    val appSettings by container.preferencesRepository
-        .observeAppSettings()
-        .collectAsStateWithLifecycle(initialValue = AppSettings())
-
     val isOnboardingCompleted by container.preferencesRepository
         .isOnboardingCompleted()
         .collectAsStateWithLifecycle(initialValue = null)
 
-    // Lock startDestination once on cold start so updating onboarding completion
-    // never recreates or resets an active NavHost.
     var initialStartDestination by remember { mutableStateOf<Any?>(null) }
     LaunchedEffect(isOnboardingCompleted) {
         if (initialStartDestination == null && isOnboardingCompleted != null) {
             initialStartDestination = if (isOnboardingCompleted == true) {
-                MainDestination
+                MainShellDestination
             } else {
                 SplashDestination
             }
         }
     }
 
-    JelajahKotaTheme(darkTheme = appSettings.darkModeEnabled) {
-        val startDestination = initialStartDestination
-        if (startDestination == null) {
-            Box(
-                modifier = modifier
-                    .fillMaxSize()
-                    .background(White),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = BrandBluePrimary)
-            }
-            return@JelajahKotaTheme
-        }
+    val startDestination = initialStartDestination ?: return
 
+    JelajahKotaTheme(darkTheme = appSettings.darkModeEnabled) {
+        val colorScheme = MaterialTheme.colorScheme
         val navController = rememberNavController()
         val coroutineScope = rememberCoroutineScope()
         val snackbarHostState = remember { SnackbarHostState() }
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentDestination = navBackStackEntry?.destination
-        val isTopLevelDestination = currentDestination.isTopLevel()
 
-        val showMessage: (String) -> Unit = { message ->
-            coroutineScope.launch {
-                snackbarHostState.showSnackbar(message)
+        val showMessage: (String) -> Unit = remember(coroutineScope, snackbarHostState) {
+            { message ->
+                coroutineScope.launch {
+                    snackbarHostState.showSnackbar(message)
+                }
             }
-        }
-
-        val currentTab = when {
-            currentDestination?.hasRoute<MainDestination>() == true -> JelajahKotaTab.BERANDA
-            currentDestination?.hasRoute<ExploreDestination>() == true -> JelajahKotaTab.EKSPLORASI
-            currentDestination?.hasRoute<PlansListDestination>() == true -> JelajahKotaTab.JADWALKAN
-            currentDestination?.hasRoute<FavoritesDestination>() == true -> JelajahKotaTab.FAVORIT
-            currentDestination?.hasRoute<ProfileDestination>() == true -> JelajahKotaTab.PROFILE
-            else -> JelajahKotaTab.BERANDA
-        }
-
-        BackHandler(enabled = isTopLevelDestination && currentDestination?.hasRoute<MainDestination>() != true) {
-            navController.navigateTopLevelTab(MainDestination)
         }
 
         Box(
             modifier = modifier
                 .fillMaxSize()
-                .background(White)
+                .background(colorScheme.background)
         ) {
             NavHost(
                 navController = navController,
                 startDestination = startDestination,
                 modifier = Modifier.fillMaxSize(),
+                sizeTransform = { null },
                 enterTransition = {
-                    val targetTop = targetState.destination.isTopLevel()
-                    val initialTop = initialState.destination.isTopLevel()
-                    if (targetTop && initialTop) {
-                        fadeIn(animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing))
+                    if (isForwardCrossfade(initialState.destination, targetState.destination)) {
+                        fadeIn(animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing))
                     } else {
                         slideInHorizontally(
-                            initialOffsetX = { fullWidth -> (fullWidth * 0.3f).toInt() },
-                            animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
-                        ) + fadeIn(animationSpec = tween(durationMillis = 220))
+                            initialOffsetX = { fullWidth -> fullWidth },
+                            animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing)
+                        )
                     }
                 },
                 exitTransition = {
-                    val targetTop = targetState.destination.isTopLevel()
-                    val initialTop = initialState.destination.isTopLevel()
-                    if (targetTop && initialTop) {
-                        fadeOut(animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing))
+                    if (isForwardCrossfade(initialState.destination, targetState.destination)) {
+                        fadeOut(animationSpec = tween(durationMillis = 140, easing = FastOutSlowInEasing))
                     } else {
                         slideOutHorizontally(
-                            targetOffsetX = { fullWidth -> -(fullWidth * 0.15f).toInt() },
-                            animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
-                        ) + fadeOut(animationSpec = tween(durationMillis = 200))
+                            targetOffsetX = { fullWidth -> -(fullWidth * 0.22f).toInt() },
+                            animationSpec = tween(durationMillis = 260, easing = FastOutSlowInEasing)
+                        )
                     }
                 },
                 popEnterTransition = {
-                    val targetTop = targetState.destination.isTopLevel()
-                    val initialTop = initialState.destination.isTopLevel()
-                    if (targetTop && initialTop) {
+                    if (initialState.destination.isRootAuthOrIntro() || targetState.destination.isRootAuthOrIntro()) {
                         fadeIn(animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing))
                     } else {
                         slideInHorizontally(
-                            initialOffsetX = { fullWidth -> -(fullWidth * 0.15f).toInt() },
-                            animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
-                        ) + fadeIn(animationSpec = tween(durationMillis = 220))
+                            initialOffsetX = { fullWidth -> -(fullWidth * 0.22f).toInt() },
+                            animationSpec = tween(durationMillis = 250, easing = FastOutSlowInEasing)
+                        )
                     }
                 },
                 popExitTransition = {
-                    val targetTop = targetState.destination.isTopLevel()
-                    val initialTop = initialState.destination.isTopLevel()
-                    if (targetTop && initialTop) {
-                        fadeOut(animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing))
+                    if (initialState.destination.isRootAuthOrIntro() || targetState.destination.isRootAuthOrIntro()) {
+                        fadeOut(animationSpec = tween(durationMillis = 140, easing = FastOutSlowInEasing))
                     } else {
                         slideOutHorizontally(
-                            targetOffsetX = { fullWidth -> (fullWidth * 0.3f).toInt() },
-                            animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing)
-                        ) + fadeOut(animationSpec = tween(durationMillis = 200))
+                            targetOffsetX = { fullWidth -> fullWidth },
+                            animationSpec = tween(durationMillis = 250, easing = FastOutSlowInEasing)
+                        )
+                    }
+                },
+                // Override Navigation Compose 2.10 default scaleOut() ("shrink to center") so
+                // Android 16 gesture & hardware Back always slide out cleanly like native apps.
+                predictivePopEnterTransition = { _ ->
+                    if (initialState.destination.isRootAuthOrIntro() || targetState.destination.isRootAuthOrIntro()) {
+                        fadeIn(animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing))
+                    } else {
+                        slideInHorizontally(
+                            initialOffsetX = { fullWidth -> -(fullWidth * 0.22f).toInt() },
+                            animationSpec = tween(durationMillis = 250, easing = FastOutSlowInEasing)
+                        )
+                    }
+                },
+                predictivePopExitTransition = { _ ->
+                    if (initialState.destination.isRootAuthOrIntro() || targetState.destination.isRootAuthOrIntro()) {
+                        fadeOut(animationSpec = tween(durationMillis = 140, easing = FastOutSlowInEasing))
+                    } else {
+                        slideOutHorizontally(
+                            targetOffsetX = { fullWidth -> fullWidth },
+                            animationSpec = tween(durationMillis = 250, easing = FastOutSlowInEasing)
+                        )
                     }
                 }
             ) {
@@ -177,10 +157,16 @@ fun JelajahKotaAppRoot(
                     coroutineScope = coroutineScope,
                     showMessage = showMessage
                 )
+                composable<MainShellDestination> {
+                    MainShellScreen(
+                        container = container,
+                        navController = navController,
+                        showMessage = showMessage
+                    )
+                }
                 placesNavGraph(
                     navController = navController,
-                    container = container,
-                    showMessage = showMessage
+                    container = container
                 )
                 plansNavGraph(
                     navController = navController,
@@ -192,9 +178,10 @@ fun JelajahKotaAppRoot(
                     container = container,
                     showMessage = showMessage
                 )
-                favoritesNavGraph(
+                galleryNavGraph(
                     navController = navController,
-                    container = container
+                    container = container,
+                    showMessage = showMessage
                 )
                 profileNavGraph(
                     navController = navController,
@@ -203,50 +190,44 @@ fun JelajahKotaAppRoot(
                 )
             }
 
-            AnimatedVisibility(
-                visible = isTopLevelDestination,
-                enter = slideInVertically(
-                    initialOffsetY = { fullHeight -> fullHeight },
-                    animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing)
-                ) + fadeIn(animationSpec = tween(150)),
-                exit = slideOutVertically(
-                    targetOffsetY = { fullHeight -> fullHeight },
-                    animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing)
-                ) + fadeOut(animationSpec = tween(120)),
+            // Isolated from NavHost so navigation transitions never recompose the root Box or NavHost.
+            AppSnackbarHost(
+                navController = navController,
+                snackbarHostState = snackbarHostState,
                 modifier = Modifier.align(Alignment.BottomCenter)
-            ) {
-                JelajahKotaBottomNavBar(
-                    selectedTab = currentTab,
-                    onTabSelected = { tab ->
-                        val destination: Any = when (tab) {
-                            JelajahKotaTab.BERANDA -> MainDestination
-                            JelajahKotaTab.EKSPLORASI -> ExploreDestination()
-                            JelajahKotaTab.JADWALKAN -> PlansListDestination
-                            JelajahKotaTab.FAVORIT -> FavoritesDestination
-                            JelajahKotaTab.PROFILE -> ProfileDestination
-                        }
-                        navController.navigateTopLevelTab(destination)
-                    }
-                )
-            }
-
-            SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .navigationBarsPadding()
-                    .padding(bottom = if (isTopLevelDestination) 76.dp else 16.dp)
             )
         }
     }
 }
 
-internal fun NavController.navigateTopLevelTab(destination: Any, restore: Boolean = true) {
-    navigate(destination) {
-        popUpTo(MainDestination) {
-            saveState = restore
-        }
-        launchSingleTop = true
-        restoreState = restore
-    }
+@Composable
+private fun AppSnackbarHost(
+    navController: NavController,
+    snackbarHostState: SnackbarHostState,
+    modifier: Modifier = Modifier
+) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val isMainShell = navBackStackEntry?.destination.isMainShell()
+
+    SnackbarHost(
+        hostState = snackbarHostState,
+        modifier = modifier
+            .navigationBarsPadding()
+            .padding(bottom = if (isMainShell) 76.dp else 16.dp)
+    )
+}
+
+private fun NavDestination.isRootAuthOrIntro(): Boolean =
+    hasRoute<SplashDestination>() ||
+        hasRoute<OnboardingDestination>() ||
+        hasRoute<PasswordUpdatedDestination>()
+
+private fun isForwardCrossfade(initial: NavDestination, target: NavDestination): Boolean {
+    if (initial.isRootAuthOrIntro() || target.isRootAuthOrIntro()) return true
+    val isAuthSwap =
+        (initial.hasRoute<SignInDestination>() && target.hasRoute<SignUpDestination>()) ||
+            (initial.hasRoute<SignUpDestination>() && target.hasRoute<SignInDestination>())
+    if (isAuthSwap) return true
+    return target.hasRoute<MainShellDestination>() &&
+        (initial.hasRoute<SignInDestination>() || initial.hasRoute<SignUpDestination>())
 }

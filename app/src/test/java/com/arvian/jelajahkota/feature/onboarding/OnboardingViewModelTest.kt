@@ -22,6 +22,7 @@ import org.junit.Test
 class FakeUserPreferencesRepository : UserPreferencesRepository {
     private val completedState = MutableStateFlow(false)
     private val settingsState = MutableStateFlow(AppSettings())
+    private val rememberedEmailState = MutableStateFlow<String?>(null)
 
     override fun isOnboardingCompleted(): Flow<Boolean> = completedState
 
@@ -45,6 +46,12 @@ class FakeUserPreferencesRepository : UserPreferencesRepository {
 
     override suspend fun setEmailNotificationsEnabled(enabled: Boolean) {
         settingsState.value = settingsState.value.copy(emailNotificationsEnabled = enabled)
+    }
+
+    override fun getRememberedEmail(): Flow<String?> = rememberedEmailState
+
+    override suspend fun setRememberedEmail(email: String?) {
+        rememberedEmailState.value = email
     }
 }
 

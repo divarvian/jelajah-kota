@@ -12,4 +12,16 @@ interface PlacesRepository {
     fun getPlaces(): Flow<List<Place>>
     fun getPlaceById(id: String): Flow<Place?>
     fun searchPlaces(query: String, cityId: String?, categoryId: String?): Flow<List<Place>>
+
+    /**
+     * Optional synchronous in-memory snapshots so ViewModels can render cached discovery data
+     * on frame 0 without flashing a loading spinner during navigation transitions.
+     */
+    fun getCachedCityDestinations(): List<CityDestination> = emptyList()
+    fun getCachedCategories(): List<CategoryItem> = emptyList()
+    fun getCachedPlaces(): List<Place> = emptyList()
+    fun getCachedPlaceById(id: String): Place? = getCachedPlaces().find { it.id == id }
+
+    /** Refreshes catalog data from the remote backend when online. */
+    suspend fun refresh() = Unit
 }

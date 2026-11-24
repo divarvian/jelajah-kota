@@ -30,15 +30,22 @@ internal fun NavGraphBuilder.onboardingNavGraph(
         OnboardingRoute(
             viewModel = onboardingViewModel,
             onNavigateToMain = {
-                navController.navigate(MainDestination) {
+                container.mainShellCoordinator.resetToHome()
+                navController.navigate(MainShellDestination) {
                     popUpTo(OnboardingDestination) { inclusive = true }
                 }
             },
             onNavigateToSignIn = {
-                navController.navigate(SignInDestination)
+                // Pop Onboarding from backstack so SignIn never navigates back to Onboarding.
+                // Onboarding remains incomplete until user authenticates or continues as Guest.
+                navController.navigate(SignInDestination) {
+                    popUpTo(OnboardingDestination) { inclusive = true }
+                }
             },
             onNavigateToSignUp = {
-                navController.navigate(SignUpDestination)
+                navController.navigate(SignUpDestination) {
+                    popUpTo(OnboardingDestination) { inclusive = true }
+                }
             }
         )
     }

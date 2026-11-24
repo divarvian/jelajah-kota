@@ -44,21 +44,22 @@ class OtpVerificationViewModelTest {
     }
 
     @Test
-    fun `verifyCode fails when incomplete`() {
-        viewModel.onDigitChange(0, "1")
-        viewModel.onDigitChange(1, "2")
-        viewModel.verifyCode()
-
-        assertEquals("Silakan masukkan 4 digit kode OTP.", viewModel.uiState.value.errorMessage)
-        assertFalse(viewModel.uiState.value.isVerified)
-    }
-
-    @Test
-    fun `verifyCode succeeds with 4 digits`() = runTest {
+    fun `verifyCode fails when incomplete under 6 digits`() {
         viewModel.onDigitChange(0, "1")
         viewModel.onDigitChange(1, "2")
         viewModel.onDigitChange(2, "3")
         viewModel.onDigitChange(3, "4")
+        viewModel.verifyCode()
+
+        assertEquals("Silakan masukkan 6 digit kode OTP.", viewModel.uiState.value.errorMessage)
+        assertFalse(viewModel.uiState.value.isVerified)
+    }
+
+    @Test
+    fun `verifyCode succeeds with 6 digits`() = runTest {
+        listOf("1", "2", "3", "4", "5", "6").forEachIndexed { idx, digit ->
+            viewModel.onDigitChange(idx, digit)
+        }
 
         viewModel.verifyCode()
         testDispatcher.scheduler.runCurrent()

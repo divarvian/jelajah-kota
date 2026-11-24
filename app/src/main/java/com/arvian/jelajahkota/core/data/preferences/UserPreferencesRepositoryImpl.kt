@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.arvian.jelajahkota.core.domain.model.AppSettings
 import com.arvian.jelajahkota.core.domain.repository.UserPreferencesRepository
 import kotlinx.coroutines.flow.Flow
@@ -22,6 +23,7 @@ class UserPreferencesRepositoryImpl(
         val KEY_DARK_MODE_ENABLED = booleanPreferencesKey("dark_mode_enabled")
         val KEY_PUSH_NOTIFICATIONS_ENABLED = booleanPreferencesKey("push_notifications_enabled")
         val KEY_EMAIL_NOTIFICATIONS_ENABLED = booleanPreferencesKey("email_notifications_enabled")
+        val KEY_REMEMBERED_EMAIL = stringPreferencesKey("remembered_email")
     }
 
     private val safeData: Flow<Preferences> = dataStore.data
@@ -68,5 +70,21 @@ class UserPreferencesRepositoryImpl(
 
     override suspend fun setEmailNotificationsEnabled(enabled: Boolean) {
         dataStore.edit { it[KEY_EMAIL_NOTIFICATIONS_ENABLED] = enabled }
+    }
+
+    override fun getRememberedEmail(): Flow<String?> =
+        safeData.map { preferences ->
+            preferences[KEY_REMEMBERED_EMAIL]?.takeIf { it.isNotBlank() }
+        }
+
+    override suspend fun setRememberedEmail(email: String?) {
+        dataStore.edit { preferences ->
+            val clean = email?.trim()
+            if (clean.isNullOrBlank()) {
+                preferences.remove(KEY_REMEMBERED_EMAIL)
+            } else {
+                preferences[KEY_REMEMBERED_EMAIL] = clean
+            }
+        }
     }
 }
